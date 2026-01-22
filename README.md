@@ -1,4 +1,4 @@
-# 🎬 [AppName]
+# 🎬 Tarjem
 
 ![Version](https://img.shields.io/badge/version-0.1.0--alpha-blueviolet?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue?style=for-the-badge)
@@ -6,19 +6,19 @@
 
 **The modern way to watch Anime & Series in Arabic.**
 
-[AppName] is a high-performance desktop utility designed to eliminate the hassle of finding subtitles. It scans your local folders, calculates video file hashes to find the *exact* matching Arabic subtitle release, and uses FFmpeg to soft-merge them into your files instantly—all wrapped in a stunning, animated interface.
+**Tarjem** is a high-performance desktop utility designed to eliminate the hassle of finding subtitles. It scans your local folders, calculates video file hashes to find the *exact* matching Arabic subtitle release, and uses FFmpeg to soft-merge them into your files instantly—all wrapped in a stunning, animated interface.
 
-![App Screenshot Placeholder](https://via.placeholder.com/800x450?text=Application+UI+Screenshot)
+![App Screenshot Placeholder](https://via.placeholder.com/800x450?text=Tarjem+App+UI)
 
 ## ✨ Features
 
-* **📂 Smart Recursive Scanning:** Drag and drop an entire folder. [AppName] detects every video file automatically.
+* **📂 Smart Recursive Scanning:** Drag and drop an entire folder. Tarjem detects every video file automatically.
 * **⚡ Precision Hash Matching:** Uses 64kb byte-offset hashing (OpenSubtitles standard) to guarantee the subtitle matches your specific video release. **No more out-of-sync audio.**
 * **🛠️ Automated Soft-Subbing:** Instantly merges downloaded `.srt` files into the video container (`.mkv`/`.mp4`) as a selectable track.
     * *Zero Re-encoding:* Merging takes seconds.
     * *Zero Quality Loss:* Your video quality remains untouched.
 * **🎨 Gamified "Fluid" UI:** Built with **Framer Motion** for silky smooth 60fps animations, interactive cards, and a sleek dark-mode aesthetic.
-* **🇸🇦 Native Arabic Support:** UI and logic are optimized for RTL layouts and Arabic text encoding.
+* **🇸🇦 Native Arabic Support:** UI and logic are fully optimized for RTL layouts and Arabic text encoding.
 
 ## 🛠️ Tech Stack
 
@@ -42,8 +42,8 @@ Built with the **"Modern & Flexible"** stack for maximum performance and design 
 
 1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/](https://github.com/)[Username]/[AppName].git
-    cd [AppName]
+    git clone [https://github.com/Kirito72/Tarjem.git](https://github.com/Kirito72/Tarjem.git)
+    cd Tarjem
     ```
 
 2.  **Install dependencies**
@@ -71,7 +71,7 @@ Built with the **"Modern & Flexible"** stack for maximum performance and design 
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please check out the [issues](https://github.com/[Username]/[AppName]/issues) tab to see what needs to be done.
+Contributions are welcome! Please check out the [issues](https://github.com/Kirito72/Tarjem/issues) tab to see what needs to be done.
 
 1.  Fork the Project
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
