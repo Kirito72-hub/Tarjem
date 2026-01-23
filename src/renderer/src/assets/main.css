@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-dark-border;
+  }
+
+  body {
+    @apply bg-dark-bg text-white font-sans overflow-hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    @apply w-screen h-screen;
+  }
+}
+
+@layer components {
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-surface;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+
+  /* Custom title bar drag region */
+  .titlebar-drag {
+    -webkit-app-region: drag;
+  }
+
+  .titlebar-no-drag {
+    -webkit-app-region: no-drag;
+  }
+
+  /* Status badge styles */
+  .status-pending {
+    @apply bg-gray-500/20 text-gray-400;
+  }
+
+  .status-hashing {
+    @apply bg-blue-500/20 text-blue-400;
+  }
+
+  .status-searching {
+    @apply bg-purple-500/20 text-purple-400;
+  }
+
+  .status-downloading {
+    @apply bg-cyan-500/20 text-cyan-400;
+  }
+
+  .status-merging {
+    @apply bg-yellow-500/20 text-yellow-400;
+  }
+
+  .status-completed {
+    @apply bg-green-500/20 text-green-400;
+  }
+
+  .status-error {
+    @apply bg-red-500/20 text-red-400;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply px-4 py-2 bg-accent-primary hover:bg-blue-600 text-white rounded-lg font-medium transition-colors;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-dark-surface hover:bg-dark-hover text-white rounded-lg font-medium transition-colors border border-dark-border;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-accent-error hover:bg-red-600 text-white rounded-lg font-medium transition-colors;
+  }
+
+  /* Input styles */
+  .input-field {
+    @apply w-full px-4 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-primary transition-colors;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-dark-surface border border-dark-border rounded-lg p-4;
+  }
+
+  .card-hover {
+    @apply bg-dark-surface border border-dark-border rounded-lg p-4 hover:bg-dark-hover transition-colors cursor-pointer;
+  }
+}
