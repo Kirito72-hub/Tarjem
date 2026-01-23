@@ -13,7 +13,7 @@ try {
 }
 console.log('--- DEBUG END ---');
 
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 
@@ -87,6 +87,22 @@ app.whenReady().then(() => {
   ipcMain.on('window:close', (event) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     window?.close()
+  })
+
+  // File Selection
+  ipcMain.handle('dialog:openFile', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'Media & Subtitles', extensions: ['mkv', 'mp4', 'avi', 'srt', 'ass', 'vtt', 'sub'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    if (canceled) {
+      return []
+    } else {
+      return filePaths
+    }
   })
 
   createWindow()

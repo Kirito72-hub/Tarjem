@@ -67,11 +67,11 @@ Option C: Use the original @electron-toolkit/utils (may need to install missing 
 - [x] **Commit**: "feat: implement file selection dialog"
 
 ### Step 4: Implement Drag-and-Drop (Phase 3.3)
-- [ ] Create IPC handler for `file:drop` event
-- [ ] Extract real file paths from dropped files
-- [ ] Validate file types
-- [ ] Update UI with dropped files
-- [ ] **Commit**: "feat: implement drag-and-drop file handling"
+- [x] Create IPC handler for `file:drop` event (Handled in renderer via standard API)
+- [x] Extract real file paths from dropped files
+- [x] Validate file types
+- [x] Update UI with dropped files
+- [x] **Commit**: "feat: implement drag-and-drop file handling"
 
 ### Step 5: Implement File Hashing (Phase 4.1)
 - [ ] Create `src/main/services/hashCalculator.ts`

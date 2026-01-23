@@ -46,11 +46,17 @@ const App: React.FC = () => {
 
     // Handle FileList (Dropping)
     if (fileList && fileList.length > 0) {
-      filesToProcess = Array.from(fileList).map(f => ({
-        name: f.name,
-        path: (f as any).path || f.name, // Electron File object has path
-        size: f.size
-      }));
+      const allowedExtensions = ['mkv', 'mp4', 'avi', 'srt', 'ass', 'vtt', 'sub'];
+      filesToProcess = Array.from(fileList)
+        .filter(f => {
+          const ext = f.name.split('.').pop()?.toLowerCase();
+          return ext && allowedExtensions.includes(ext);
+        })
+        .map(f => ({
+          name: f.name,
+          path: (f as any).path || f.name, // Electron File object has path
+          size: f.size
+        }));
     }
     // Handle Native Dialog (Clicking)
     else {
