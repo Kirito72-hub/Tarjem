@@ -7,12 +7,20 @@ const api = {
   window: {
     minimize: () => ipcRenderer.send('window:minimize'),
     maximize: () => ipcRenderer.send('window:maximize'),
-    close: () => ipcRenderer.send('window:close')
+    close: () => ipcRenderer.send('window:close'),
+    onWindowStateChange: (callback: (state: 'maximized' | 'normal') => void) => {
+      ipcRenderer.on('window:maximized', () => callback('maximized'))
+      ipcRenderer.on('window:unmaximized', () => callback('normal'))
+    },
+    onWindowStateChange: (callback: (state: 'maximized' | 'normal') => void) => {
+      ipcRenderer.on('window:maximized', () => callback('maximized'))
+      ipcRenderer.on('window:unmaximized', () => callback('normal'))
+    }
   },
   
   // File operations (to be implemented)
   files: {
-    selectFiles: () => ipcRenderer.invoke('dialog:openFile'),
+    selectFiles: (tab?: 'FILE_MATCH' | 'MERGER') => ipcRenderer.invoke('dialog:openFile', tab),
     onFileDrop: (callback: (files: any[]) => void) => {
       ipcRenderer.on('file:drop', (_, files) => callback(files))
     }
@@ -35,6 +43,12 @@ const api = {
     download: (url: string, destination: string) => 
       ipcRenderer.invoke('subtitle:download', url, destination)
   },
+
+  // SubDL operations
+  subdl: {
+    search: (query: string, language?: string) => 
+      ipcRenderer.invoke('subdl:search', query, language)
+  },
   
   // Merger operations (to be implemented)
   merger: {
@@ -42,6 +56,12 @@ const api = {
     onProgress: (callback: (progress: number) => void) => {
       ipcRenderer.on('merger:progress', (_, progress) => callback(progress))
     }
+  },
+
+  // Settings
+  settings: {
+    get: (key: string) => ipcRenderer.invoke('settings:get', key),
+    set: (key: string, value: any) => ipcRenderer.invoke('settings:set', key, value)
   }
 }
 

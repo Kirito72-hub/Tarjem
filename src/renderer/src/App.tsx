@@ -46,7 +46,11 @@ const App: React.FC = () => {
 
     // Handle FileList (Dropping)
     if (fileList && fileList.length > 0) {
-      const allowedExtensions = ['mkv', 'mp4', 'avi', 'srt', 'ass', 'vtt', 'sub'];
+      // Filter extensions based on active tab
+      const allowedExtensions = activeTab === 'FILE_MATCH'
+        ? ['avi', 'mkv', 'mp4'] // Auto Match: only video files
+        : ['mkv', 'mp4', 'avi', 'srt', 'ass', 'vtt', 'sub']; // Merger: video + subtitle files
+
       filesToProcess = Array.from(fileList)
         .filter(f => {
           const ext = f.name.split('.').pop()?.toLowerCase();
@@ -60,7 +64,7 @@ const App: React.FC = () => {
     }
     // Handle Native Dialog (Clicking)
     else {
-      const paths = await window.api.files.selectFiles();
+      const paths = await window.api.files.selectFiles(activeTab);
       if (!paths || paths.length === 0) return;
 
       // Call main process to get file details (size, name)
@@ -201,6 +205,43 @@ const App: React.FC = () => {
     alert(`Downloaded ${result.filename} to Merger queue.`);
   };
 
+  const handleDownloadEpisodeSubtitle = async (episodeId: string, result: SubtitleResult) => {
+    const episode = searchEpisodes.find(e => e.id === episodeId);
+    if (!episode) return;
+
+    // Construct destination path: same folder, same filename, but with subtitle extension matches the result (or .srt default)
+    // Actually result.url might be a zip, usually api handles extraction or it's a direct srt.
+    // Assuming api handles it.
+    // We want to save it as <video_name>.srt (or .ass etc)
+
+    const videoPath = episode.path;
+    const lastDotIndex = videoPath.lastIndexOf('.');
+    const basePath = lastDotIndex !== -1 ? videoPath.substring(0, lastDotIndex) : videoPath;
+    // Get extension from result filename or default to srt
+    const subExt = result.filename.split('.').pop() || 'srt';
+    const destinationPath = `${basePath}.${subExt}`;
+
+    try {
+      await window.api.subtitles.download(result.url, destinationPath);
+
+      setSearchEpisodes(prev => prev.map(e => e.id === episodeId ? {
+        ...e,
+        stage: ProcessingStage.COMPLETED,
+        statusMessage: 'Subtitle downloaded',
+        progress: 100
+      } : e));
+
+      // Also add to merger queue? valid convenience.
+      // For now just mark complete.
+    } catch (error) {
+      setSearchEpisodes(prev => prev.map(e => e.id === episodeId ? {
+        ...e,
+        stage: ProcessingStage.ERROR,
+        statusMessage: 'Download failed'
+      } : e));
+    }
+  };
+
   // Selection Logic
   const toggleEpisodeSelection = (id: string) => {
     const { setEpisodes } = getCurrentQueueInfo();
@@ -247,10 +288,77 @@ const App: React.FC = () => {
     });
   };
 
-  const simulateProcessing = (id: string, tab: DashboardTab) => {
+  const simulateProcessing = async (id: string, tab: DashboardTab) => {
     const setTargetEpisodes = tab === 'FILE_MATCH' ? setSearchEpisodes : setMergeEpisodes;
-    const startStage = tab === 'FILE_MATCH' ? ProcessingStage.HASHING : ProcessingStage.MERGING;
-    const startMessage = tab === 'FILE_MATCH' ? 'Calculating CRC32 hash...' : 'Initializing FFmpeg...';
+    const episodes = tab === 'FILE_MATCH' ? searchEpisodes : mergeEpisodes;
+    const episode = episodes.find(e => e.id === id);
+    if (!episode) return;
+
+    if (tab === 'FILE_MATCH') {
+      // Real Hashing Logic
+      console.log('Starting hash calculation for:', episode.path);
+      setSearchEpisodes(prev => prev.map(e => e.id === id ? { ...e, stage: ProcessingStage.HASHING, statusMessage: 'Calculating hash...', progress: 0 } : e));
+
+      // Setup progress listener (Global for now - implies single active hash or shared progress)
+      // ideally we'd pass ID to IPC to filter events
+      const removeListener = window.api.hashing.onProgress((progress) => {
+        setSearchEpisodes(prev => prev.map(e => e.id === id ? { ...e, progress } : e));
+      });
+
+      try {
+        // Mock API for now doesn't filter by ID, so we might clash if parallel. 
+        // But for single file test it works.
+        const hash = await window.api.hashing.calculateHash(episode.path);
+        console.log('Hash calculated successfully:', hash);
+
+        setSearchEpisodes(prev => prev.map(e => e.id === id ? {
+          ...e,
+          stage: ProcessingStage.SEARCHING,
+          statusMessage: `Hash: ${hash.substring(0, 8)}...`,
+          progress: 100
+        } : e));
+
+        // Real Search
+        console.log('Searching for subtitles with hash:', hash);
+        const results = await window.api.subtitles.searchByHash(hash);
+        console.log('Search results:', results);
+
+        if (results && results.length > 0) {
+          console.log('Found', results.length, 'subtitle(s)');
+          setSearchEpisodes(prev => prev.map(e => e.id === id ? {
+            ...e,
+            stage: ProcessingStage.REVIEW, // Go to Review stage
+            statusMessage: 'Select a subtitle',
+            searchResults: results
+          } : e));
+        } else {
+          console.log('No subtitles found');
+          setSearchEpisodes(prev => prev.map(e => e.id === id ? {
+            ...e,
+            stage: ProcessingStage.COMPLETED, // Or ERROR/NOT_FOUND
+            statusMessage: 'No subtitles found',
+          } : e));
+        }
+
+      } catch (err: any) {
+        console.error('Error in auto-match process:', err);
+
+        // Check if it's an API key error
+        const isApiKeyError = err?.message?.includes('API Key missing');
+
+        setSearchEpisodes(prev => prev.map(e => e.id === id ? {
+          ...e,
+          stage: ProcessingStage.ERROR,
+          statusMessage: isApiKeyError ? 'API Key required - Check Settings' : 'Search failed'
+        } : e));
+      }
+
+      return;
+    }
+
+    // Existing Merger Simulation
+    const startStage = ProcessingStage.MERGING;
+    const startMessage = 'Initializing FFmpeg...';
 
     setTargetEpisodes(prev => prev.map(e => e.id === id ? { ...e, stage: startStage, statusMessage: startMessage, progress: 5 } : e));
 
@@ -268,28 +376,17 @@ const App: React.FC = () => {
         let newStage = currentEp.stage;
         let newMessage = currentEp.statusMessage;
 
-        if (tab === 'FILE_MATCH') {
-          if (progress > 30 && currentEp.stage === ProcessingStage.HASHING) {
-            newStage = ProcessingStage.SEARCHING;
-            newMessage = 'Searching databases...';
-          }
-          if (progress > 80 && currentEp.stage === ProcessingStage.SEARCHING) {
-            newStage = ProcessingStage.COMPLETED;
-            newMessage = 'Subtitle downloaded';
-          }
-        } else {
-          // MERGER logic
-          if (progress > 30 && progress <= 60) newMessage = 'Cleaning streams...';
-          if (progress > 60) newMessage = 'Muxing container...';
-          if (progress >= 95) {
-            newStage = ProcessingStage.COMPLETED;
-            newMessage = 'Merge Complete';
-          }
+        // MERGER logic
+        if (progress > 30 && progress <= 60) newMessage = 'Cleaning streams...';
+        if (progress > 60) newMessage = 'Muxing container...';
+        if (progress >= 95) {
+          newStage = ProcessingStage.COMPLETED;
+          newMessage = 'Merge Complete';
         }
 
         if (progress >= 100) {
           newStage = ProcessingStage.COMPLETED;
-          newMessage = tab === 'FILE_MATCH' ? 'Ready' : 'Completed';
+          newMessage = 'Completed';
           progress = 100;
           clearInterval(interval);
         }
@@ -318,6 +415,7 @@ const App: React.FC = () => {
             isSearchingWeb={isSearchingWeb}
             onWebSearch={handleWebSearch}
             onDownloadSubtitle={handleDownloadSubtitle}
+            onDownloadEpisodeSubtitle={handleDownloadEpisodeSubtitle}
             onAddFiles={handleAddFiles}
             onClearCompleted={clearCompleted}
             onStartQueue={startProcessingQueue}

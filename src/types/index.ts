@@ -2,6 +2,7 @@ export enum ProcessingStage {
   IDLE = 'IDLE',
   HASHING = 'HASHING',
   SEARCHING = 'SEARCHING',
+  REVIEW = 'REVIEW',
   MERGING = 'MERGING',
   COMPLETED = 'COMPLETED',
   ERROR = 'ERROR'
@@ -18,6 +19,7 @@ export interface EpisodeFile {
   thumbnailUrl?: string; // Optional placeholder image
   selected: boolean;
   fileType: 'VIDEO' | 'SUBTITLE';
+  searchResults?: SubtitleResult[];
 }
 
 export interface SubtitleResult {
@@ -27,6 +29,7 @@ export interface SubtitleResult {
   language: string;
   downloads: number;
   rating: number; // 0-5
+  url: string;
 }
 
 export interface SubtitleSource {
@@ -45,3 +48,29 @@ export interface MergeOptions {
 
 export type View = 'DASHBOARD' | 'SETTINGS' | 'LOGS';
 export type DashboardTab = 'FILE_MATCH' | 'WEB_SEARCH' | 'MERGER';
+
+export interface ElectronAPI {
+  window: {
+    minimize: () => void;
+    maximize: () => void;
+    close: () => void;
+    onWindowStateChange: (callback: (state: 'maximized' | 'normal') => void) => void;
+  };
+  files: {
+    selectFiles: (tab?: DashboardTab) => Promise<string[]>;
+    onFileDrop: (callback: (files: any[]) => void) => void;
+  };
+  hashing: {
+    calculateHash: (filePath: string) => Promise<string>;
+    onProgress: (callback: (progress: number) => void) => () => void;
+  };
+  subtitles: {
+    searchByHash: (hash: string, language?: string) => Promise<any>;
+    searchByQuery: (query: string, language?: string) => Promise<any>;
+    download: (downloadData: any, destination: string) => Promise<string>;
+  };
+  settings: {
+    get: (key: string) => Promise<any>;
+    set: (key: string, value: any) => Promise<void>;
+  };
+}

@@ -74,19 +74,21 @@ Option C: Use the original @electron-toolkit/utils (may need to install missing 
 - [x] **Commit**: "feat: implement drag-and-drop file handling"
 
 ### Step 5: Implement File Hashing (Phase 4.1)
-- [ ] Create `src/main/services/hashCalculator.ts`
-- [ ] Implement MD5 hash calculation using Node crypto
-- [ ] Create IPC handler `hash:calculate`
-- [ ] Add progress callback for large files
-- [ ] Test with sample video file
-- [ ] **Commit**: "feat: implement file hash calculation"
+- [x] Create `src/main/services/hashCalculator.ts`
+- [x] Implement MD5 hash calculation using Node crypto
+- [x] Create IPC handler `hash:calculate`
+- [x] Add progress callback for large files
+- [x] Test with sample video file (Integrated into UI)
+- [x] **Commit**: "feat: implement file hash calculation"
 
-### Step 6: Mock Subtitle API (Phase 4.2)
-- [ ] Create `src/main/services/subtitleApi.ts`
-- [ ] Implement mock `searchByHash()` function
-- [ ] Return sample subtitle results
-- [ ] Create IPC handler `subtitle:searchByHash`
-- [ ] **Commit**: "feat: add mock subtitle API"
+### Step 6: Real Subtitle API Integration (Phase 4.2)
+- [x] Create `src/main/services/subtitleApi.ts`
+- [x] Implement `OpenSubtitles` client using `axios`
+- [x] Implement `SubDL` service
+- [x] Implement `search` and `searchByHash` endpoint calls
+- [x] Implement `download` endpoint call (Partial - Service ready)
+- [x] Update `src/main/index.ts` to use real service
+- [x] **Commit**: "feat: integrate real OpenSubtitles and SubDL API"
 
 ### Step 7: Auto-Match UI Flow (Phase 4.4)
 - [ ] Update Dashboard to show hashing progress
