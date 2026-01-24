@@ -12,8 +12,16 @@ import icon from '../../resources/icon.png?asset'
 import { OpenSubtitlesService, SubDLService } from './services/subtitleApi'
 import { HashCalculator } from './services/hashCalculator'
 import { Downloader } from './services/downloader'
+// Import FFmpegService
+import { FFmpegService } from './services/ffmpeg';
 
-let store: any;
+let mainWindow: BrowserWindow | null = null;
+let store: ElectronStore | null = null;
+let subtitleService: OpenSubtitlesService | null = null;
+let subdlService: SubDLService | null = null;
+let hashCalculator: HashCalculator | null = null;
+let downloader: Downloader | null = null;
+let ffmpegService: FFmpegService | null = null;
 
 function createWindow(): void {
   // Check if running in development mode

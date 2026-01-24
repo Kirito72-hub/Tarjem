@@ -104,10 +104,10 @@ Option C: Use the original @electron-toolkit/utils (may need to install missing 
 - [x] **Commit**: "feat: implement manual search"
 
 ### Step 9: FFmpeg Setup (Phase 6.1)
-- [ ] Create `src/main/services/ffmpeg.ts`
-- [ ] Configure fluent-ffmpeg with ffmpeg-static
-- [ ] Test FFmpeg is accessible
-- [ ] **Commit**: "feat: setup FFmpeg integration"
+- [x] Create `src/main/services/ffmpeg.ts`
+- [x] Configure fluent-ffmpeg with ffmpeg-static
+- [x] Test FFmpeg is accessible
+- [x] **Commit**: "feat: setup FFmpeg integration"
 
 ### Step 10: Merger Implementation (Phase 6.2)
 - [ ] Implement `mergeMedia()` function
