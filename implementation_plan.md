@@ -91,17 +91,17 @@ Option C: Use the original @electron-toolkit/utils (may need to install missing 
 - [x] **Commit**: "feat: integrate real OpenSubtitles and SubDL API"
 
 ### Step 7: Auto-Match UI Flow (Phase 4.4)
-- [ ] Update Dashboard to show hashing progress
-- [ ] Display mock search results
-- [ ] Add download button (mock for now)
-- [ ] Update file status through workflow
-- [ ] **Commit**: "feat: implement auto-match UI flow"
+- [x] Update Dashboard to show hashing progress
+- [x] Display real search results (mapped from OpenSubtitles)
+- [x] Implement real download functionality
+- [x] Update file status through workflow
+- [x] **Commit**: "feat: implement auto-match UI flow"
 
 ### Step 8: Manual Search Tab (Phase 5.1)
-- [ ] Create search input component
-- [ ] Implement `subtitle:searchByQuery` IPC handler
-- [ ] Display search results
-- [ ] **Commit**: "feat: implement manual search"
+- [x] Create search input component
+- [x] Implement `subtitle:searchByQuery` IPC handler
+- [x] Display search results
+- [x] **Commit**: "feat: implement manual search"
 
 ### Step 9: FFmpeg Setup (Phase 6.1)
 - [ ] Create `src/main/services/ffmpeg.ts`

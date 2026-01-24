@@ -178,7 +178,49 @@ app.whenReady().then(async () => {
       }
   });
   
+  ipcMain.handle('subtitle:searchByQuery', async (_event, query, language) => {
+      try {
+        console.log(`Searching for query: ${query}`);
+        const results: any[] = [];
+
+        // Try OpenSubtitles
+        if (subtitleService) {
+          try {
+            console.log('Searching OpenSubtitles...');
+            const osResults = await subtitleService.search(query, language);
+            if (osResults?.data && Array.isArray(osResults.data)) {
+                console.log(`OpenSubtitles found ${osResults.data.length} results`);
+                results.push(...osResults.data);
+            }
+          } catch (error) {
+            console.error('OpenSubtitles query search failed:', error);
+          }
+        }
+
+        // Try SubDL
+        if (subdlService) {
+            try {
+                console.log('Searching SubDL...');
+                const subdlResults = await subdlService.search(query, language);
+                if (subdlResults?.results && Array.isArray(subdlResults.results)) {
+                    console.log(`SubDL found ${subdlResults.results.length} results`);
+                    results.push(...subdlResults.results);
+                }
+            } catch (error) {
+                console.error('SubDL query search failed:', error);
+            }
+        }
+
+        console.log(`Total results from all sources: ${results.length}`);
+        return results;
+      } catch (error) {
+          console.error('Subtitle Query Search Error:', error);
+          throw error;
+      }
+  });
+
   ipcMain.handle('subdl:search', async (_event, query, language) => {
+      // Legacy handler, can be removed later or kept for direct access
       if (!subdlService) throw new Error('SubDLService not initialized');
       return await subdlService.search(query, language);
   });

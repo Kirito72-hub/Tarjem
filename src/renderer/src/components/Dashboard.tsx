@@ -327,57 +327,63 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
 
                     {/* Results List */}
-                    {(searchResults.length > 0 || isSearchingWeb) && (
+                    {(searchResults.length > 0) && (
                         <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0F111A]">
-                            {isSearchingWeb && searchResults.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-40 mt-10 text-gray-500">
-                                    <p>Searching providers...</p>
+                            <div className="p-0">
+                                {/* Header */}
+                                <div className="flex items-center px-8 py-3 bg-[#161B22]/50 border-b border-white/5 text-xs font-medium text-gray-500 uppercase tracking-wider select-none">
+                                    <div className="flex-1">Release Name</div>
+                                    <div className="w-32">Language</div>
+                                    <div className="w-32">Source</div>
+                                    <div className="w-32 text-right">Rating</div>
+                                    <div className="w-24 text-right">Action</div>
                                 </div>
-                            ) : (
-                                <div className="p-0">
-                                    {/* Header */}
-                                    <div className="flex items-center px-8 py-3 bg-[#161B22]/50 border-b border-white/5 text-xs font-medium text-gray-500 uppercase tracking-wider select-none">
-                                        <div className="flex-1">Release Name</div>
-                                        <div className="w-32">Language</div>
-                                        <div className="w-32">Source</div>
-                                        <div className="w-32 text-right">Rating</div>
-                                        <div className="w-24 text-right">Action</div>
-                                    </div>
 
-                                    {searchResults.map((result) => (
-                                        <div key={result.id} className="flex items-center px-8 py-4 border-b border-white/5 hover:bg-white/5 transition-colors group">
-                                            <div className="flex-1 min-w-0 pr-4">
-                                                <div className="flex items-center gap-3">
-                                                    <Captions size={18} className="text-gray-600 group-hover:text-gray-400" />
-                                                    <span className="text-sm font-medium text-gray-300 group-hover:text-white truncate">
-                                                        {result.filename}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="w-32 text-sm text-gray-400">{result.language}</div>
-                                            <div className="w-32 text-sm text-gray-500 flex items-center gap-1.5">
-                                                <Globe size={12} /> {result.source}
-                                            </div>
-                                            <div className="w-32 text-right flex items-center justify-end gap-1 text-amber-500">
-                                                <span className="text-sm font-bold">{result.rating}</span>
-                                                <Star size={12} fill="currentColor" />
-                                            </div>
-                                            <div className="w-24 text-right">
-                                                <button
-                                                    onClick={() => onDownloadSubtitle(result.id)}
-                                                    className="px-3 py-1.5 bg-white/5 hover:bg-amber-600 hover:text-white text-gray-400 rounded-md text-xs font-medium transition-all flex items-center gap-2 ml-auto"
-                                                >
-                                                    <Download size={14} />
-                                                    Get
-                                                </button>
+                                {searchResults.map((result) => (
+                                    <div key={result.id} className="flex items-center px-8 py-4 border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                        <div className="flex-1 min-w-0 pr-4">
+                                            <div className="flex items-center gap-3">
+                                                <Captions size={18} className="text-gray-600 group-hover:text-gray-400" />
+                                                <span className="text-sm font-medium text-gray-300 group-hover:text-white truncate">
+                                                    {result.filename}
+                                                </span>
                                             </div>
                                         </div>
-                                    ))}
-                                    <div className="p-8 text-center text-xs text-gray-600">
-                                        Found {searchResults.length} results
+                                        <div className="w-32 text-sm text-gray-400">{result.language}</div>
+                                        <div className="w-32 text-sm text-gray-500 flex items-center gap-1.5">
+                                            <Globe size={12} /> {result.source}
+                                        </div>
+                                        <div className="w-32 text-right flex items-center justify-end gap-1 text-amber-500">
+                                            <span className="text-sm font-bold">{result.rating}</span>
+                                            <Star size={12} fill="currentColor" />
+                                        </div>
+                                        <div className="w-24 text-right">
+                                            <button
+                                                onClick={() => onDownloadSubtitle(result.id)}
+                                                className="px-3 py-1.5 bg-white/5 hover:bg-amber-600 hover:text-white text-gray-400 rounded-md text-xs font-medium transition-all flex items-center gap-2 ml-auto"
+                                            >
+                                                <Download size={14} />
+                                                Get
+                                            </button>
+                                        </div>
                                     </div>
+                                ))}
+                                <div className="p-8 text-center text-xs text-gray-600">
+                                    Found {searchResults.length} results
                                 </div>
-                            )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Empty State / Loading */}
+                    {searchResults.length === 0 && (
+                        <div className="flex flex-1 items-center justify-center text-gray-500">
+                            {isSearchingWeb ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <Loader2 className="animate-spin text-amber-500" size={32} />
+                                    <p>Searching providers...</p>
+                                </div>
+                            ) : null}
                         </div>
                     )}
                 </div>
