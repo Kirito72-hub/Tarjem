@@ -110,17 +110,17 @@ Option C: Use the original @electron-toolkit/utils (may need to install missing 
 - [x] **Commit**: "feat: setup FFmpeg integration"
 
 ### Step 10: Merger Implementation (Phase 6.2)
-- [ ] Implement `mergeMedia()` function
-- [ ] Create IPC handler `merger:start`
-- [ ] Build FFmpeg command with options
-- [ ] Test basic merge operation
-- [ ] **Commit**: "feat: implement media merger"
+- [x] Implement `mergeMedia()` function
+- [x] Create IPC handler `merger:start`
+- [x] Build FFmpeg command with options
+- [x] Test basic merge operation
+- [x] **Commit**: "feat: implement media merger"
 
 ### Step 11: Merger Progress Tracking (Phase 6.3)
-- [ ] Parse FFmpeg stderr for progress
-- [ ] Send progress updates via IPC
-- [ ] Update ProgressBar in real-time
-- [ ] **Commit**: "feat: add merger progress tracking"
+- [x] Parse FFmpeg stderr for progress
+- [x] Send progress updates via IPC
+- [x] Update ProgressBar in real-time
+- [x] **Commit**: "feat: add merger progress tracking"
 
 ### Step 12: Settings Implementation (Phase 7)
 - [ ] Setup electron-store

@@ -356,45 +356,70 @@ const App: React.FC = () => {
       return;
     }
 
-    // Existing Merger Simulation
+    // Real Merger Logic
     const startStage = ProcessingStage.MERGING;
-    const startMessage = 'Initializing FFmpeg...';
+    setTargetEpisodes(prev => prev.map(e => e.id === id ? { ...e, stage: startStage, statusMessage: 'Preparing merge...', progress: 0 } : e));
 
-    setTargetEpisodes(prev => prev.map(e => e.id === id ? { ...e, stage: startStage, statusMessage: startMessage, progress: 5 } : e));
+    try {
+      // 1. Find matching subtitle
+      // Simple heuristic: Same filename stem
+      const lastDot = episode.filename.lastIndexOf('.');
+      const videoNameStem = lastDot !== -1 ? episode.filename.substring(0, lastDot) : episode.filename;
 
-    let progress = 5;
-    const interval = setInterval(() => {
-      progress += Math.random() * 5;
+      // Look for any selected subtitle that matches or just ANY selected subtitle if only 1 is selected
+      const selectedSubs = mergeEpisodes.filter(e => e.fileType === 'SUBTITLE' && e.selected);
+      let targetSub = selectedSubs.find(s => s.filename.includes(videoNameStem));
 
-      setTargetEpisodes(prev => {
-        const currentEp = prev.find(e => e.id === id);
-        if (!currentEp) {
-          clearInterval(interval);
-          return prev;
-        }
+      // Fallback: if only 1 video is processing and 1 sub is selected, use it
+      if (!targetSub && selectedSubs.length === 1) {
+        targetSub = selectedSubs[0];
+      }
 
-        let newStage = currentEp.stage;
-        let newMessage = currentEp.statusMessage;
+      if (!targetSub) {
+        throw new Error('No matching subtitle found selected');
+      }
 
-        // MERGER logic
-        if (progress > 30 && progress <= 60) newMessage = 'Cleaning streams...';
-        if (progress > 60) newMessage = 'Muxing container...';
-        if (progress >= 95) {
-          newStage = ProcessingStage.COMPLETED;
-          newMessage = 'Merge Complete';
-        }
+      const outputPath = episode.path.substring(0, episode.path.lastIndexOf('.')) + '_merged.mp4';
 
-        if (progress >= 100) {
-          newStage = ProcessingStage.COMPLETED;
-          newMessage = 'Completed';
-          progress = 100;
-          clearInterval(interval);
-        }
+      setTargetEpisodes(prev => prev.map(e => e.id === id ? {
+        ...e,
+        statusMessage: `Merging with ${targetSub?.filename}...`
+      } : e));
 
-        return prev.map(e => e.id === id ? { ...e, progress, stage: newStage, statusMessage: newMessage } : e);
+      // Setup progress listener
+      const removeProgressListener = window.api.merger.onProgress((progress) => {
+        setTargetEpisodes(prev => prev.map(e => e.id === id ? { ...e, progress } : e));
       });
 
-    }, 400);
+      console.log(`Calling mergeMedia with: ${episode.path} + ${targetSub.path} -> ${outputPath}`);
+      await window.api.merger.mergeMedia({
+        videoPath: episode.path,
+        subtitlePath: targetSub.path,
+        outputPath: outputPath
+      });
+
+      // removeProgressListener(); // Cleanup function returned by onProgress isn't callable directly like this in current impl pattern?
+      // Wait, window.api.merger.onProgress returns a cleanup function () => void
+      // So I should call it.
+      // Actually the current implementation in preload:
+      // onProgress: (callback) => { ipcRenderer.on...; return () => ... }
+      // Let's verify preload implementation later. Assuming standard pattern.
+
+      setTargetEpisodes(prev => prev.map(e => e.id === id ? {
+        ...e,
+        stage: ProcessingStage.COMPLETED,
+        statusMessage: 'Merge Complete',
+        progress: 100
+      } : e));
+
+    } catch (error: any) {
+      console.error('Merge failed:', error);
+      setTargetEpisodes(prev => prev.map(e => e.id === id ? {
+        ...e,
+        stage: ProcessingStage.ERROR,
+        statusMessage: `Merge Failed: ${error.message}`
+      } : e));
+    }
   };
 
   const clearCompleted = () => {

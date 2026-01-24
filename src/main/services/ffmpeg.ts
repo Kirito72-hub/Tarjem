@@ -60,4 +60,62 @@ export class FFmpegService {
     }
     return ffmpeg();
   }
+
+  public mergeMedia(
+    videoPath: string,
+    subtitlePath: string,
+    outputPath: string,
+    onProgress?: (progress: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.ffmpegPath) {
+        reject(new Error('FFmpeg not initialized'));
+        return;
+      }
+
+      console.log(`Starting merge: ${videoPath} + ${subtitlePath} -> ${outputPath}`);
+
+      const command = this.createCommand();
+
+      command
+        .input(videoPath)
+        .input(subtitlePath)
+        .outputOptions('-c copy') // Copy video and audio streams without re-encoding
+        .outputOptions('-c:s mov_text') // Encode subtitles for compatibility (mp4 container usually needs mov_text)
+        // If output is mkv, -c:s srt might be better, or just -c copy if srt
+        // For now, let's play safe for mp4 output primarily or generic.
+        // Actually, let's be smarter. If output is MKV, we can copy subs.
+        // If MP4, we often need mov_text.
+        // Let's check extension.
+        .output(outputPath)
+        .on('start', (commandLine) => {
+          console.log('Spawned Ffmpeg with command: ' + commandLine);
+        })
+        .on('progress', (progress) => {
+          if (onProgress && progress.percent) {
+            onProgress(Math.round(progress.percent));
+          }
+        })
+        .on('error', (err) => {
+          console.error('An error occurred: ' + err.message);
+          reject(err);
+        })
+        .on('end', () => {
+          console.log('Processing finished !');
+          resolve();
+        });
+
+      // Special logic for subtitle codec based on output container
+      const outExt = path.extname(outputPath).toLowerCase();
+      if (outExt === '.mp4') {
+          // MP4 container usually prefers mov_text for soft subs
+          command.outputOptions('-c:s mov_text'); 
+      } else if (outExt === '.mkv') {
+          // MKV can take almost anything, copy is safe
+          command.outputOptions('-c:s copy');
+      }
+
+      command.run();
+    });
+  }
 }

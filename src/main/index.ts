@@ -287,6 +287,36 @@ app.whenReady().then(async () => {
     }
   });
 
+  // Merger operations
+  ipcMain.handle('merger:start', async (event, options) => {
+    try {
+      if (!ffmpegService) throw new Error('FFmpegService not initialized');
+      
+      const { videoPath, subtitlePath, outputPath } = options;
+      
+      if (!videoPath || !subtitlePath || !outputPath) {
+        throw new Error('Missing arguments for merge');
+      }
+
+      console.log('Starting merge process...');
+      console.log('Video:', videoPath);
+      console.log('Subtitle:', subtitlePath);
+      console.log('Output:', outputPath);
+
+      await ffmpegService.mergeMedia(videoPath, subtitlePath, outputPath, (progress) => {
+        if(!event.sender.isDestroyed()) {
+            event.sender.send('merger:progress', progress);
+        }
+      });
+      
+      console.log('Merge completed successfully');
+      return { success: true };
+    } catch (error) {
+      console.error('Merge failed:', error);
+      throw error;
+    }
+  });
+
   // Settings
   ipcMain.handle('settings:get', (_event, key) => {
     return store.get(key);

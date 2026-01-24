@@ -69,6 +69,13 @@ export interface ElectronAPI {
     searchByQuery: (query: string, language?: string) => Promise<any>;
     download: (downloadData: any, destination: string) => Promise<string>;
   };
+  subdl: {
+    search: (query: string, language?: string) => Promise<any>;
+  };
+  merger: {
+    mergeMedia: (options: { videoPath: string; subtitlePath: string; outputPath: string }) => Promise<{ success: boolean }>;
+    onProgress: (callback: (progress: number) => void) => () => void;
+  };
   settings: {
     get: (key: string) => Promise<any>;
     set: (key: string, value: any) => Promise<void>;
