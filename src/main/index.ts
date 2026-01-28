@@ -37,7 +37,9 @@ let ffmpegService: FFmpegService | null = null
 let omdbService: OMDbService | null = null
 let anilistService: AniListService | null = null
 let metadataCache: MetadataCache | null = null
+
 let providerRegistry: ProviderRegistry | null = null
+let subSourceService: SubSourceService | null = null
 
 function createWindow(): void {
   // Check if running in development mode
@@ -110,6 +112,8 @@ app.whenReady().then(async () => {
     subdlService = new SubDLService(store)
     hashCalculator = new HashCalculator()
     downloader = new Downloader()
+    ffmpegService = new FFmpegService() // Initialize FFmpeg service
+    
     // Initialize OMDb Service
     const omdbApiKey = await store.get('omdb_api_key')
     omdbService = new OMDbService(omdbApiKey as string)
@@ -122,8 +126,10 @@ app.whenReady().then(async () => {
     if (subdlService) providerRegistry.register(new SubDLAdapter(subdlService))
     
     // Register SubSource
+
     const subSourceKey = await store.get('subsource_api_key')
-    providerRegistry.register(new SubSourceService(subSourceKey as string))
+    subSourceService = new SubSourceService(subSourceKey as string)
+    providerRegistry.register(subSourceService)
     
     console.log('Services initialized successfully')
   } catch (err) {
@@ -381,6 +387,14 @@ app.whenReady().then(async () => {
           const fileId = parseInt(url.replace('opensubtitles://', ''), 10)
           const linkData = await subtitleService.getDownloadLink(fileId)
           downloadUrl = linkData.link
+        } else if (url.startsWith('subsource:')) {
+           const id = url.split(':')[1]
+           if (subSourceService) {
+               await subSourceService.downloadSubtitle(id, destination)
+               return destination // Return the destination path
+           } else {
+               throw new Error('SubSource service not initialized')
+           }
         } else {
           downloadUrl = url
         }
@@ -561,6 +575,20 @@ app.whenReady().then(async () => {
   // Utility handlers
   ipcMain.handle('utils:parseFilename', (_event, filename) => {
     return parseFilename(filename)
+  })
+
+  ipcMain.handle('utils:deleteFile', async (_event, filePath) => {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+        console.log('Deleted file:', filePath)
+        return true
+      }
+      return false
+    } catch (error: any) {
+      console.error('Failed to delete file:', error.message)
+      throw error
+    }
   })
 
   createWindow()

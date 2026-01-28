@@ -79,7 +79,13 @@ export class FFmpegService {
       command
         .input(videoPath)
         .input(subtitlePath)
-        .outputOptions('-c copy') // Copy video and audio streams without re-encoding
+        // Map video and audio streams from input 0 (video file)
+        .outputOptions('-map 0:v') // Map all video streams
+        .outputOptions('-map 0:a') // Map all audio streams
+        // Map subtitle from input 1 (subtitle file)
+        .outputOptions('-map 1:0') // Map the subtitle
+        .outputOptions('-c:v copy') // Copy video without re-encoding
+        .outputOptions('-c:a copy') // Copy audio without re-encoding
         // Subtitle codec handled below based on extension
         .output(outputPath)
         .on('start', (commandLine) => {
@@ -104,14 +110,15 @@ export class FFmpegService {
       if (outExt === '.mp4') {
         // MP4 container usually prefers mov_text for soft subs
         command.outputOptions('-c:s mov_text')
+        command.outputOptions('-metadata:s:s:0 language=ara') // Set Arabic language tag
       } else if (outExt === '.mkv') {
-        // MKV can take almost anything, copy is safe
-        command.outputOptions('-c:s srt') // Explicitly set srt for mkv if input is srt, or copy? Copy is safer
-        // actually -c:s copy is safer generally.
+        // MKV can handle any subtitle format - copy to preserve original styling
         command.outputOptions('-c:s copy')
+        command.outputOptions('-metadata:s:s:0 language=ara') // Set Arabic language tag
       } else {
         // Default fallback
         command.outputOptions('-c:s mov_text')
+        command.outputOptions('-metadata:s:s:0 language=ara')
       }
 
       command.run()

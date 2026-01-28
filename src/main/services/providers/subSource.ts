@@ -1,6 +1,9 @@
 import axios from 'axios'
+import fs from 'fs'
+import path from 'path'
+import AdmZip from 'adm-zip'
 import { SubtitleProvider, SubtitleResult } from './types'
-import { MetadataResult } from '../metadata/types'
+import { MetadataResult } from '../metadataApi'
 
 export class SubSourceService implements SubtitleProvider {
   readonly id = 'subsource'
@@ -131,23 +134,24 @@ export class SubSourceService implements SubtitleProvider {
            if (subResponse.data && Array.isArray(subResponse.data.data)) {
                if (subResponse.data.data.length > 0) {
                      const firstData = subResponse.data.data[0];
-                     try {
-                        const fs = require('fs');
-                        const debugPath = 'C:\\Users\\Ahmed Saudi\\Documents\\vsCodeProjects\\Tarjem\\Tarjem\\debug_subsource_result.json';
-                        fs.writeFileSync(debugPath, JSON.stringify(firstData, null, 2));
-                        console.log('Written debug data to ' + debugPath);
-                     } catch (err) {
-                        console.error('Failed to write debug file:', err);
-                     }
+                 try {
+                    const debugPath = 'C:\\Users\\Ahmed Saudi\\Documents\\vsCodeProjects\\Tarjem\\Tarjem\\debug_subsource_result.json'
+                    fs.writeFileSync(debugPath, JSON.stringify(firstData, null, 2))
+                    console.log('Written debug data to ' + debugPath)
+                } catch (err) {
+                    console.error('Failed to write debug file:', err)
+                }
                }
 
 
                const rawSubs = subResponse.data.data.map((s: any) => {
                    const uniqueId = String(s.subtitleId || s.id || Math.random().toString(36))
                    
-                   // Ensure URL is unique by appending ID as fragment
-                   const baseUrl = String(s.link || s.url || s.downloadUrl || `subsource:${uniqueId}`)
-                   const uniqueUrl = baseUrl.includes('#') ? baseUrl : `${baseUrl}#${uniqueId}`
+                   // Use subsource: protocol for download handler to intercept
+                   const uniqueUrl = `subsource:${uniqueId}`
+                   
+                   // We lose the web link in 'url', but 'link' might be useful if we update types later.
+                   // const webLink = s.link ? `https://subsource.net${s.link}` : ''
 
                    // Map release name using releaseInfo (which is often an array) or other fields
                    const rawRelease = s.releaseInfo || s.releaseName || s.release_name || s.name || s.title || s.fileName || s.file_name
@@ -167,7 +171,7 @@ export class SubSourceService implements SubtitleProvider {
                        source: 'SubSource',
                        language: String(s.lang || s.language || language || 'Unknown'),
                        format: String(s.format || 'srt'),
-                       filename: String(releaseName || movie.title || 'Unknown'),
+                       filename: String(releaseName || movie.title || 'Unknown') + '.' + String(s.format || 'srt'),
                        downloads: Number(s.downloads || s.downloadCount || 0),
                        rating: Number(s.rating?.total || s.rating || 0),
                        isAnime: !!metadata.isAnime,
@@ -224,6 +228,111 @@ export class SubSourceService implements SubtitleProvider {
       if (id.startsWith('http')) return id
       
       // Otherwise, we might need to call /subtitles/{id}/download
-      return id
+      // But for SubSource, we return a special protocol URL to be handled by the main process
+      return `subsource:${id}`
+  }
+
+  async downloadSubtitle(id: string, destination: string): Promise<void> {
+    try {
+        if (!this.apiKey) throw new Error('No API Key provided')
+
+        console.log(`[SubSource] Downloading subtitle ID: ${id}`)
+        
+        const response = await axios.get(`${this.baseUrl}/subtitles/${id}/download`, {
+            headers: {
+                'X-API-Key': this.apiKey
+            },
+            responseType: 'arraybuffer'
+        })
+
+        // Detect the actual file extension from response headers
+        let actualExtension = ''
+        const contentDisposition = response.headers['content-disposition']
+        const contentType = response.headers['content-type']
+        
+        // Try to get extension from Content-Disposition header
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+            if (filenameMatch && filenameMatch[1]) {
+                const filename = filenameMatch[1].replace(/['"]/g, '')
+                const extMatch = filename.match(/\.([^.]+)$/)
+                if (extMatch) {
+                    actualExtension = extMatch[1]
+                }
+            }
+        }
+        
+        // Fallback to Content-Type if no extension found
+        if (!actualExtension && contentType) {
+            if (contentType.includes('zip')) {
+                actualExtension = 'zip'
+            } else if (contentType.includes('rar')) {
+                actualExtension = 'rar'
+            } else if (contentType.includes('x-subrip')) {
+                actualExtension = 'srt'
+            }
+        }
+        
+        // Default to zip if still no extension (SubSource typically returns zip)
+        if (!actualExtension) {
+            actualExtension = 'zip'
+        }
+
+        // Adjust destination to use the correct extension
+        let finalDestination = destination
+        const currentExt = path.extname(destination).slice(1) // Remove the dot
+        if (currentExt !== actualExtension) {
+            // Replace the extension
+            finalDestination = destination.replace(/\.[^.]+$/, `.${actualExtension}`)
+        }
+
+        // Save the file as-is without extraction
+        // This preserves the original format (.zip, .rar, .ass, .srt, etc.)
+        const destDir = path.dirname(finalDestination)
+        if (!fs.existsSync(destDir)) {
+            fs.mkdirSync(destDir, { recursive: true })
+        }
+        
+        fs.writeFileSync(finalDestination, response.data)
+        
+        console.log(`[SubSource] Downloaded to: ${finalDestination}`)
+
+        // If it's a zip file, extract the subtitle
+        if (actualExtension === 'zip') {
+            try {
+                const zip = new AdmZip(finalDestination)
+                const zipEntries = zip.getEntries()
+                
+                // Find the first subtitle file in the zip
+                const subtitleEntry = zipEntries.find((entry: any) => 
+                    !entry.isDirectory && /\.(srt|ass|ssa|sub|vtt)$/i.test(entry.entryName)
+                )
+                
+                if (subtitleEntry) {
+                    // Extract to the original destination path (without .zip extension)
+                    const extractedPath = destination
+                    const extractedData = subtitleEntry.getData()
+                    fs.writeFileSync(extractedPath, extractedData)
+                    
+                    console.log(`[SubSource] Extracted subtitle to: ${extractedPath}`)
+                    
+                    // Optionally delete the zip file
+                    fs.unlinkSync(finalDestination)
+                } else {
+                    console.warn(`[SubSource] No subtitle file found in zip archive`)
+                }
+            } catch (extractError: any) {
+                console.error(`[SubSource] Failed to extract zip:`, extractError.message)
+                // Keep the zip file if extraction fails
+            }
+        }
+
+    } catch (error: any) {
+        console.error('[SubSource] Download failed:', error.message)
+        if (error.response) {
+             console.error('[SubSource] Error details:', error.response.data.toString())
+        }
+        throw error
+    }
   }
 }

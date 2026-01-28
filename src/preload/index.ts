@@ -63,7 +63,8 @@ const api = {
 
   // Utilities
   utils: {
-    parseFilename: (filename: string) => ipcRenderer.invoke('utils:parseFilename', filename)
+    parseFilename: (filename: string) => ipcRenderer.invoke('utils:parseFilename', filename),
+    deleteFile: (filePath: string) => ipcRenderer.invoke('utils:deleteFile', filePath)
   }
 }
 

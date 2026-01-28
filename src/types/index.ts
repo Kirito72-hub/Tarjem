@@ -2,6 +2,7 @@ export enum ProcessingStage {
   IDLE = 'IDLE',
   HASHING = 'HASHING',
   SEARCHING = 'SEARCHING',
+  DOWNLOADING = 'DOWNLOADING',
   REVIEW = 'REVIEW',
   MERGING = 'MERGING',
   COMPLETED = 'COMPLETED',
@@ -76,6 +77,7 @@ export interface ElectronAPI {
   }
   utils: {
     parseFilename: (filename: string) => Promise<any>
+    deleteFile: (filePath: string) => Promise<boolean>
   }
   subdl: {
     search: (query: string, language?: string) => Promise<any>

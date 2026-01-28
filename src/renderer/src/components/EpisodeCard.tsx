@@ -44,6 +44,12 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = ({
           textColor: 'text-amber-400',
           icon: <Search size={14} className="text-amber-400" />
         }
+      case ProcessingStage.DOWNLOADING:
+        return {
+          barColor: 'bg-green-500',
+          textColor: 'text-green-400',
+          icon: <Download size={14} className="text-green-400" />
+        }
       case ProcessingStage.REVIEW:
         return {
           barColor: 'bg-purple-500',
@@ -134,8 +140,8 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = ({
             </h3>
             {/* If IDLE or Review or Subtitle, show status message. Else show progress bar */}
             {episode.stage === ProcessingStage.IDLE ||
-            episode.stage === ProcessingStage.REVIEW ||
-            isSubtitle ? (
+              episode.stage === ProcessingStage.REVIEW ||
+              isSubtitle ? (
               <div className="text-xs text-gray-600 mt-1">{episode.statusMessage}</div>
             ) : (
               <div className="w-full max-w-[200px] h-1 bg-gray-800 rounded-full mt-2 overflow-hidden">

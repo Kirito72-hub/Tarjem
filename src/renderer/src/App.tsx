@@ -43,6 +43,7 @@ const App: React.FC = () => {
   const [mergeEpisodes, setMergeEpisodes] = useState<EpisodeFile[]>([]) // For Merger
   const [searchResults, setSearchResults] = useState<SubtitleResult[]>([]) // For Manual Search results
   const [isSearchingWeb, setIsSearchingWeb] = useState(false)
+  const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set()) // Track downloads in progress
 
   // Modals State
   const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false)
@@ -269,6 +270,9 @@ const App: React.FC = () => {
     const result = searchResults.find((r) => r.id === id)
     if (!result) return
 
+    // Add to downloading set
+    setDownloadingIds((prev) => new Set(prev).add(id))
+
     try {
       let destinationPath = ''
       // Check Export Path
@@ -320,6 +324,13 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Download failed', error)
       addToast('Download failed', 'error')
+    } finally {
+      // Remove from downloading set
+      setDownloadingIds((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(id)
+        return newSet
+      })
     }
   }
 
@@ -467,6 +478,174 @@ const App: React.FC = () => {
     )
   }
 
+  // Helper to extract episode/season info from filename
+  interface EpisodeInfo {
+    title: string
+    season?: number
+    episode?: number
+    isMovie: boolean
+  }
+
+  const extractEpisodeInfo = (filename: string): EpisodeInfo => {
+    const result: EpisodeInfo = {
+      title: '',
+      isMovie: false
+    }
+
+    // Check for movie indicators
+    if (/\b(movie|film|ova)\b/i.test(filename)) {
+      result.isMovie = true
+    }
+
+    // Try to extract season and episode using various patterns
+    // Pattern 1: S01E12 or s01e12
+    let match = filename.match(/S(\d+)E(\d+)/i)
+    if (match) {
+      result.season = parseInt(match[1], 10)
+      result.episode = parseInt(match[2], 10)
+    }
+
+    // Pattern 2: "- 06" or " - 12" (common anime pattern)
+    if (!result.episode) {
+      match = filename.match(/\s-\s(\d+)(?:\s|$|\.)/i)
+      if (match) {
+        result.episode = parseInt(match[1], 10)
+      }
+    }
+
+    // Pattern 3: "EP 12" or "E12" or "Episode 5"
+    if (!result.episode) {
+      match = filename.match(/\bEP?\.?\s*(\d+)\b/i) || filename.match(/\bEpisode\s*(\d+)\b/i)
+      if (match) {
+        result.episode = parseInt(match[1], 10)
+      }
+    }
+
+    // Pattern 4: Just a number at the end (e.g., "Show Name 06.mkv")
+    if (!result.episode) {
+      match = filename.match(/\s(\d{1,3})(?:\s|\.mkv|\.mp4|\.avi|$)/i)
+      if (match) {
+        const num = parseInt(match[1], 10)
+        // Only consider it an episode if it's a reasonable episode number (1-999)
+        if (num >= 1 && num <= 999) {
+          result.episode = num
+        }
+      }
+    }
+
+    // Extract title (everything before episode/season indicators)
+    let title = filename
+      .replace(/\[.*?\]/g, '') // Remove tags
+      .replace(/\(.*?\)/g, '')
+      .replace(/\.(mkv|mp4|avi|mp3|wav|flac|aac|wma|wmv|mov|flv|webm)$/i, '')
+      .replace(/S\d+E\d+/i, '')
+      .replace(/\s-\s\d+.*$/i, '')
+      .replace(/\bEP?\.?\s*\d+.*$/i, '')
+      .replace(/\bEpisode\s*\d+.*$/i, '')
+      .replace(/\d{3,4}p/gi, '')
+      .replace(/\b(BD|BluRay|WEB-?DL|HDTV|x264|x265|HEVC|10bit|8bit)\b/gi, '')
+      .replace(/[._]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    result.title = title
+
+    return result
+  }
+
+  // Helper to check if subtitle matches the episode
+  const subtitleMatchesEpisode = (
+    subtitle: SubtitleResult,
+    videoInfo: EpisodeInfo
+  ): boolean => {
+    // If video is a movie, subtitle should also be a movie
+    if (videoInfo.isMovie) {
+      return /\b(movie|film)\b/i.test(subtitle.filename)
+    }
+
+    // If video has episode number, subtitle should match
+    if (videoInfo.episode !== undefined) {
+      const subFilename = subtitle.filename.toLowerCase()
+
+      // Extract episode number from subtitle filename using same patterns
+      const patterns = [
+        /\s-\s0*(\d+)(?:\s|$|\.)/i, // "- 06" or "- 6"
+        /\bep?\.?\s*0*(\d+)\b/i, // "EP 06" or "E6"
+        /\bepisode\s*0*(\d+)\b/i, // "Episode 6"
+        /s\d+e0*(\d+)/i, // "S01E06"
+        /\s0*(\d{1,3})(?:\s|\.srt|\.ass|$)/i // Just number
+      ]
+
+      for (const pattern of patterns) {
+        const match = subFilename.match(pattern)
+        if (match) {
+          const subEpisode = parseInt(match[1], 10)
+          if (subEpisode === videoInfo.episode) {
+            return true
+          }
+        }
+      }
+
+      // No match found
+      return false
+    }
+
+    // If no specific episode info, consider it a potential match
+    return true
+  }
+
+  // Helper to select best subtitle from search results
+  const selectBestSubtitle = (
+    results: SubtitleResult[],
+    videoFilename: string
+  ): SubtitleResult | null => {
+    if (!results || results.length === 0) return null
+
+    // Extract episode info from video filename
+    const videoInfo = extractEpisodeInfo(videoFilename)
+    console.log('Video episode info:', videoInfo)
+
+    // Filter by preferred language
+    let candidates = results.filter(
+      (r) => r.language.toLowerCase() === subtitleLanguage.toLowerCase()
+    )
+
+    // If no language matches, use all results
+    if (candidates.length === 0) {
+      candidates = results
+    }
+
+    // Filter by episode match
+    const exactMatches = candidates.filter((r) => subtitleMatchesEpisode(r, videoInfo))
+
+    console.log(
+      `Episode filtering: ${candidates.length} candidates -> ${exactMatches.length} exact matches`
+    )
+
+    // Use exact matches if available, otherwise fall back to all candidates
+    const finalCandidates = exactMatches.length > 0 ? exactMatches : candidates
+
+    // Sort by score: episode match bonus + rating * 10 + downloads / 1000
+    const sorted = finalCandidates.sort((a, b) => {
+      const episodeMatchA = subtitleMatchesEpisode(a, videoInfo) ? 100 : 0
+      const episodeMatchB = subtitleMatchesEpisode(b, videoInfo) ? 100 : 0
+
+      const scoreA = episodeMatchA + (a.rating || 0) * 10 + (a.downloads || 0) / 1000
+      const scoreB = episodeMatchB + (b.rating || 0) * 10 + (b.downloads || 0) / 1000
+
+      return scoreB - scoreA
+    })
+
+    const selected = sorted[0] || null
+    if (selected) {
+      console.log(
+        `Selected subtitle: ${selected.filename} (Episode match: ${subtitleMatchesEpisode(selected, videoInfo)})`
+      )
+    }
+
+    return selected
+  }
+
   const simulateProcessing = async (id: string, tab: DashboardTab) => {
     const setTargetEpisodes = tab === 'FILE_MATCH' ? setSearchEpisodes : setMergeEpisodes
     const episodes = tab === 'FILE_MATCH' ? searchEpisodes : mergeEpisodes
@@ -552,18 +731,150 @@ const App: React.FC = () => {
 
         if (results && results.length > 0) {
           console.log('Found', results.length, 'subtitle(s)')
+
+          // AUTO MATCH: Select best subtitle automatically
+          const bestSubtitle = selectBestSubtitle(results, episode.filename)
+
+          if (!bestSubtitle) {
+            console.log('No suitable subtitle found after filtering')
+            setSearchEpisodes((prev) =>
+              prev.map((e) =>
+                e.id === id
+                  ? {
+                    ...e,
+                    stage: ProcessingStage.COMPLETED,
+                    statusMessage: 'No suitable subtitle found'
+                  }
+                  : e
+              )
+            )
+            return
+          }
+
+          console.log('Selected best subtitle:', bestSubtitle.filename)
+
+          // DOWNLOADING stage
           setSearchEpisodes((prev) =>
             prev.map((e) =>
               e.id === id
                 ? {
                   ...e,
-                  stage: ProcessingStage.REVIEW, // Go to Review stage
-                  statusMessage: 'Select a subtitle',
-                  searchResults: results
+                  stage: ProcessingStage.DOWNLOADING,
+                  statusMessage: `Downloading: ${bestSubtitle.filename}...`,
+                  progress: 0
                 }
                 : e
             )
           )
+
+          try {
+            // Determine download path
+            const exportPath = await window.api.settings.get('export_path')
+            let subtitlePath = ''
+
+            if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
+              const metadata = await window.api.utils.parseFilename(episode.filename)
+              const seriesName = metadata.title || 'Subtitles'
+              // Create temp subtitle path
+              subtitlePath = `${exportPath}\\${seriesName}\\temp_${bestSubtitle.filename}`
+            } else {
+              // Fallback to temp directory
+              subtitlePath = `C:\\Temp\\${bestSubtitle.filename}`
+            }
+
+            // Download subtitle
+            console.log('Downloading subtitle to:', subtitlePath)
+            const downloaded = await window.api.subtitles.download(
+              bestSubtitle.url,
+              subtitlePath
+            )
+
+            if (!downloaded) {
+              throw new Error('Download failed')
+            }
+
+            // MERGING stage
+            setSearchEpisodes((prev) =>
+              prev.map((e) =>
+                e.id === id
+                  ? {
+                    ...e,
+                    stage: ProcessingStage.MERGING,
+                    statusMessage: 'Merging subtitle with video...',
+                    progress: 0
+                  }
+                  : e
+              )
+            )
+
+            // Determine output path
+            let outputPath = ''
+            if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
+              const metadata = await window.api.utils.parseFilename(episode.filename)
+              const seriesName = metadata.title || 'Merged'
+              // Keep original filename and extension
+              const originalFilename = episode.filename
+              outputPath = `${exportPath}\\${seriesName}\\${originalFilename}`
+            } else {
+              // Fallback to same directory as source
+              const lastSlash = episode.path.lastIndexOf('\\')
+              const dir = lastSlash !== -1 ? episode.path.substring(0, lastSlash) : 'C:\\Temp'
+              outputPath = `${dir}\\${episode.filename}`
+            }
+
+            console.log('Merging:', episode.path, '+', subtitlePath, '->', outputPath)
+
+            // Setup progress listener for merge
+            const removeProgressListener = window.api.merger.onProgress((progress) => {
+              setSearchEpisodes((prev) => prev.map((e) => (e.id === id ? { ...e, progress } : e)))
+            })
+
+            // Merge video and subtitle
+            await window.api.merger.mergeMedia({
+              videoPath: episode.path,
+              subtitlePath: subtitlePath,
+              outputPath: outputPath
+            })
+
+            // Clean up temporary subtitle file after successful merge
+            try {
+              await window.api.utils.deleteFile(subtitlePath)
+              console.log('Cleaned up temporary subtitle file:', subtitlePath)
+            } catch (cleanupError) {
+              console.warn('Failed to cleanup subtitle file:', cleanupError)
+              // Don't fail the whole process if cleanup fails
+            }
+
+            // Success!
+            setSearchEpisodes((prev) =>
+              prev.map((e) =>
+                e.id === id
+                  ? {
+                    ...e,
+                    stage: ProcessingStage.COMPLETED,
+                    statusMessage: 'Completed successfully',
+                    progress: 100
+                  }
+                  : e
+              )
+            )
+
+            addToast(`Successfully processed: ${episode.filename}`, 'success')
+          } catch (downloadError: any) {
+            console.error('Download or merge failed:', downloadError)
+            setSearchEpisodes((prev) =>
+              prev.map((e) =>
+                e.id === id
+                  ? {
+                    ...e,
+                    stage: ProcessingStage.ERROR,
+                    statusMessage: `Failed: ${downloadError.message || 'Unknown error'}`
+                  }
+                  : e
+              )
+            )
+            addToast(`Failed to process: ${episode.filename}`, 'error')
+          }
         } else {
           console.log('No subtitles found')
           setSearchEpisodes((prev) =>
@@ -571,7 +882,7 @@ const App: React.FC = () => {
               e.id === id
                 ? {
                   ...e,
-                  stage: ProcessingStage.COMPLETED, // Or ERROR/NOT_FOUND
+                  stage: ProcessingStage.COMPLETED,
                   statusMessage: 'No subtitles found'
                 }
                 : e
@@ -722,6 +1033,7 @@ const App: React.FC = () => {
             episodes={episodes}
             searchResults={searchResults}
             isSearchingWeb={isSearchingWeb}
+            downloadingIds={downloadingIds}
             onWebSearch={handleWebSearch}
             onDownloadSubtitle={handleDownloadSubtitle}
             onDownloadEpisodeSubtitle={handleDownloadEpisodeSubtitle}

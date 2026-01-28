@@ -12,7 +12,6 @@ import {
   Captions,
   Globe,
   Download,
-  Star,
   Loader2
 } from 'lucide-react'
 import { EpisodeCard } from './EpisodeCard'
@@ -26,6 +25,7 @@ interface DashboardProps {
   // Web Search Props
   searchResults: SubtitleResult[]
   isSearchingWeb: boolean
+  downloadingIds: Set<string>
   onWebSearch: (query: string) => void
   onDownloadSubtitle: (id: string) => void
   onDownloadEpisodeSubtitle?: (episodeId: string, result: SubtitleResult) => void
@@ -46,6 +46,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   episodes,
   searchResults,
   isSearchingWeb,
+  downloadingIds,
   onWebSearch,
   onDownloadSubtitle,
   onDownloadEpisodeSubtitle,
@@ -390,7 +391,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="w-32">Owner</div>
                   <div className="w-16 text-center">H.I.</div>
                   <div className="w-48">Caption</div>
-                  <div className="w-24 text-right">Rating</div>
                   <div className="w-16 text-right">Action</div>
                 </div>
 
@@ -415,17 +415,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="w-32 text-sm text-gray-400 truncate" title={result.owner || 'Unknown'}>{result.owner || '-'}</div>
                     <div className="w-16 text-center text-sm text-gray-400">{result.hi ? 'Yes' : '-'}</div>
                     <div className="w-48 text-sm text-gray-500 truncate italic" title={result.caption || ''}>{result.caption || '-'}</div>
-                    <div className="w-24 text-right flex items-center justify-end gap-1 text-amber-500">
-                      <span className="text-sm font-bold">{result.rating}</span>
-                      <Star size={12} fill="currentColor" />
-                    </div>
                     <div className="w-16 text-right">
                       <button
                         onClick={() => onDownloadSubtitle(result.id)}
-                        className="px-3 py-1.5 bg-white/5 hover:bg-amber-600 hover:text-white text-gray-400 rounded-md text-xs font-medium transition-all flex items-center gap-2 ml-auto"
+                        disabled={downloadingIds.has(result.id)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-2 ml-auto ${downloadingIds.has(result.id)
+                          ? 'bg-amber-600/50 text-white cursor-not-allowed animate-pulse'
+                          : 'bg-white/5 hover:bg-amber-600 hover:text-white text-gray-400'
+                          }`}
                       >
-                        <Download size={14} />
-                        Get
+                        {downloadingIds.has(result.id) ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <Download size={14} />
+                            Get
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
