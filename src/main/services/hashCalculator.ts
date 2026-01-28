@@ -1,38 +1,39 @@
-import fs from 'fs';
-import crypto from 'crypto';
+import fs from 'fs'
 
 export class HashCalculator {
   /**
-   * Calculates MD5 hash of a file for subtitle matching.
-   * OpenSubtitles and other providers often use a specific hash of the first and last 64kb
-   * but for general file identification we'll start with full MD5 or partial MD5.
-   * 
-   * For standard subtitle hashing (OpenSubtitles Hash), we need a specific algorithm.
-   * But let's start with a standard MD5 stream for now, or just file size + name if typical hashing is too slow.
+   * Calculates OpenSubtitles MovieHash (64k chunks).
+   *
+   * The hash is calculated by taking 64kb from the beginning and 64kb from the end of the file.
+   * If the file is smaller than 64kb, the hash is calculated by reading the entire file.
    */
-  async calculateMD5(filePath: string, onProgress?: (percentage: number) => void): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const stats = fs.statSync(filePath);
-      const fileSize = stats.size;
-      const stream = fs.createReadStream(filePath);
-      const hash = crypto.createHash('md5');
-      let readBytes = 0;
+  async calculateHash(filePath: string): Promise<string> {
+    const stats = await fs.promises.stat(filePath)
+    const fileSize = stats.size
+    const chunkSize = 65536
 
-      stream.on('data', (chunk) => {
-        readBytes += chunk.length;
-        hash.update(chunk);
-        if (onProgress) {
-            onProgress(Math.round((readBytes / fileSize) * 100));
+    const fd = await fs.promises.open(filePath, 'r')
+
+    try {
+      let hash = BigInt(fileSize)
+
+      const processChunk = async (position: number) => {
+        const buffer = Buffer.alloc(chunkSize)
+        const { bytesRead } = await fd.read(buffer, 0, chunkSize, position)
+
+        for (let i = 0; i < bytesRead; i += 8) {
+          if (i + 8 > bytesRead) break
+          const val = buffer.readBigUInt64LE(i)
+          hash = (hash + val) & 0xffffffffffffffffn
         }
-      });
+      }
 
-      stream.on('end', () => {
-        resolve(hash.digest('hex'));
-      });
+      await processChunk(0)
+      await processChunk(Math.max(0, fileSize - chunkSize))
 
-      stream.on('error', (err) => {
-        reject(err);
-      });
-    });
+      return hash.toString(16).padStart(16, '0')
+    } finally {
+      await fd.close()
+    }
   }
 }

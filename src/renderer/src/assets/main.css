@@ -21,7 +21,6 @@
 }
 
 @layer components {
-
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     @apply w-2;

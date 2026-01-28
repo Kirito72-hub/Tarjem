@@ -11,21 +11,18 @@ const api = {
     onWindowStateChange: (callback: (state: 'maximized' | 'normal') => void) => {
       ipcRenderer.on('window:maximized', () => callback('maximized'))
       ipcRenderer.on('window:unmaximized', () => callback('normal'))
-    },
-    onWindowStateChange: (callback: (state: 'maximized' | 'normal') => void) => {
-      ipcRenderer.on('window:maximized', () => callback('maximized'))
-      ipcRenderer.on('window:unmaximized', () => callback('normal'))
     }
   },
-  
+
   // File operations (to be implemented)
   files: {
-    selectFiles: (tab?: 'FILE_MATCH' | 'MERGER') => ipcRenderer.invoke('dialog:openFile', tab),
+    selectFiles: (tab?: 'FILE_MATCH' | 'MERGER' | 'DIRECTORY') =>
+      ipcRenderer.invoke('dialog:openFile', tab),
     onFileDrop: (callback: (files: any[]) => void) => {
       ipcRenderer.on('file:drop', (_, files) => callback(files))
     }
   },
-  
+
   // Hashing operations (to be implemented)
   hashing: {
     calculateHash: (filePath: string) => ipcRenderer.invoke('hash:calculate', filePath),
@@ -33,23 +30,23 @@ const api = {
       ipcRenderer.on('hash:progress', (_, progress) => callback(progress))
     }
   },
-  
+
   // Subtitle operations (to be implemented)
   subtitles: {
-    search: (query: string, language?: string) => 
-      ipcRenderer.invoke('subtitle:searchByQuery', query, language),
-    searchByHash: (hash: string, language?: string) => 
+    search: (query: string, language?: string, metadata?: any, enabledSources?: string[]) =>
+      ipcRenderer.invoke('subtitle:searchByQuery', query, language, metadata, enabledSources),
+    searchByHash: (hash: string, language?: string) =>
       ipcRenderer.invoke('subtitle:searchByHash', hash, language),
-    download: (url: string, destination: string) => 
-      ipcRenderer.invoke('subtitle:download', url, destination)
+    download: (url: string, destination: string, options?: any) =>
+      ipcRenderer.invoke('subtitle:download', url, destination, options)
   },
 
   // SubDL operations
   subdl: {
-    search: (query: string, language?: string) => 
+    search: (query: string, language?: string) =>
       ipcRenderer.invoke('subdl:search', query, language)
   },
-  
+
   // Merger operations (to be implemented)
   merger: {
     mergeMedia: (options: any) => ipcRenderer.invoke('merger:start', options),
@@ -62,6 +59,11 @@ const api = {
   settings: {
     get: (key: string) => ipcRenderer.invoke('settings:get', key),
     set: (key: string, value: any) => ipcRenderer.invoke('settings:set', key, value)
+  },
+
+  // Utilities
+  utils: {
+    parseFilename: (filename: string) => ipcRenderer.invoke('utils:parseFilename', filename)
   }
 }
 
@@ -81,4 +83,3 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.api = api
 }
-

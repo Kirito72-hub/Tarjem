@@ -1,21 +1,21 @@
-import React from 'react';
-import { Minus, X, Square } from 'lucide-react';
+import React from 'react'
+import { Minus, X, Square } from 'lucide-react'
 
 export const TitleBar: React.FC = () => {
-  const [isMaximized, setIsMaximized] = React.useState(false);
+  const [isMaximized, setIsMaximized] = React.useState(false)
 
   React.useEffect(() => {
     // Check if API is available (in case running without Electron or preload failure)
     if (window.api && window.api.window && window.api.window.onWindowStateChange) {
       window.api.window.onWindowStateChange((state) => {
-        setIsMaximized(state === 'maximized');
-      });
+        setIsMaximized(state === 'maximized')
+      })
     }
-  }, []);
+  }, [])
 
-  const handleMinimize = () => window.api?.window?.minimize();
-  const handleMaximize = () => window.api?.window?.maximize();
-  const handleClose = () => window.api?.window?.close();
+  const handleMinimize = () => window.api?.window?.minimize()
+  const handleMaximize = () => window.api?.window?.maximize()
+  const handleClose = () => window.api?.window?.close()
 
   return (
     <div className="h-8 bg-[#0F111A] flex items-center justify-between px-3 select-none draggable border-b border-white/5 w-full z-50">
@@ -34,7 +34,11 @@ export const TitleBar: React.FC = () => {
           onClick={handleMaximize}
           className="text-gray-500 hover:text-white transition-colors p-1"
         >
-          {isMaximized ? <Square size={12} fill="currentColor" className="opacity-50" /> : <Square size={12} />}
+          {isMaximized ? (
+            <Square size={12} fill="currentColor" className="opacity-50" />
+          ) : (
+            <Square size={12} />
+          )}
         </button>
         <button
           onClick={handleClose}
@@ -44,5 +48,5 @@ export const TitleBar: React.FC = () => {
         </button>
       </div>
     </div>
-  );
-};
+  )
+}

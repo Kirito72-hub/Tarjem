@@ -1,0 +1,24 @@
+--- TEST 1: Stubborn TV Show (Chainsaw Man) [AR] ---
+--- TEST 1: Stubborn TV Show (Chainsaw Man) [AR] ---
+SubDL searching with query: "Chainsaw Man"
+SubDL Request: [object Object]
+SubDL Response Status: 200
+No results for "Chainsaw Man" with language "EN". Retrying for metadata without language filter...
+Broad search returned 0 results. Retrying with full_season=1...
+[Chainsaw Man] Results: 0
+[Chainsaw Man] Results: 0
+[Chainsaw Man] FAILED: No results found.
+[Chainsaw Man] FAILED: No results found.
+
+--- TEST 2: Standard Movie (Interstellar) [EN] ---
+
+--- TEST 2: Standard Movie (Interstellar) [EN] ---
+SubDL searching with query: "Interstellar"
+SubDL Request: [object Object]
+SubDL Response Status: 200
+No results for "Interstellar" with language "EN". Retrying for metadata without language filter...
+Broad search returned 0 results. Retrying with full_season=1...
+[Interstellar] Results: 0
+[Interstellar] Results: 0
+[Interstellar] FAILED: No results found.
+[Interstellar] FAILED: No results found.
