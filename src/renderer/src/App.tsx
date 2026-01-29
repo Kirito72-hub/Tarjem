@@ -457,49 +457,102 @@ const App: React.FC = () => {
     })
   }
 
-  // Helper to clean filename for better search results
+  // Helper to clean filename for search query
   const cleanFilename = (filename: string): string => {
-    return (
-      filename
-        .replace(/\[.*?\]/g, '') // Remove [Group] tags
-        .replace(/\(.*?\)/g, '') // Remove (Info) tags
-        .replace(/\.(mkv|mp4|avi|mp3|wav|flac|aac|wma|wmv|mov|flv|webm)$/i, '') // Remove extension
-        // Remove episode/season indicators (e.g., "- 06", "S01E02", "EP 12", "Episode 5")
-        .replace(/\s*-\s*\d+\s*$/i, '') // Remove "- 06" at end
-        .replace(/\s*S\d+E\d+/i, '') // Remove S01E02
-        .replace(/\s*EP?\s*\d+/i, '') // Remove EP 12 or E12
-        .replace(/\s*Episode\s*\d+/i, '') // Remove Episode 5
-        // Remove quality indicators
-        .replace(/\d{3,4}p/gi, '') // Remove 1080p, 720p, etc.
-        .replace(/\b(BD|BluRay|WEB-?DL|HDTV|x264|x265|HEVC|10bit|8bit)\b/gi, '') // Remove quality tags
-        .replace(/[._]/g, ' ') // Replace dots and underscores with spaces
-        .replace(/\s+/g, ' ') // Collapse multiple spaces
-        .trim()
-    )
+    return filename
+      .replace(/\[.*?\]/g, '') // Remove [Group] tags
+      .replace(/\(.*?\)/g, '') // Remove (Info) tags
+      .replace(/\.(mkv|mp4|avi|srt|ass|mp3|wav|flac|aac|wma|wmv|mov|flv|webm)$/i, '') // Remove extension
+      .replace(/\s*-\s*\d+\s*$/i, '') // Remove "- 06" at end
+      .replace(/\s*S\d+E\d+/i, '') // Remove S01E02
+      .replace(/\s*EP?\s*\d+/i, '') // Remove EP 12 or E12
+      .replace(/\s*Episode\s*\d+/i, '') // Remove Episode 5
+      .replace(/\d{3,4}p/gi, '') // Remove 1080p, 720p, etc.
+      .replace(/\b(BD|BluRay|WEB-?DL|HDTV|x264|x265|HEVC|10bit|8bit)\b/gi, '') // Remove quality tags
+      .replace(/[._]/g, ' ') // Replace dots and underscores with spaces
+      .replace(/\s+/g, ' ') // Collapse multiple spaces
+      .trim()
+  }
+
+  // ============================================================================
+  // ADVANCED SUBTITLE MATCHING ALGORITHM
+  // ============================================================================
+
+  // Levenshtein Distance - Calculate similarity between two strings
+  const levenshteinDistance = (str1: string, str2: string): number => {
+    const s1 = str1.toLowerCase()
+    const s2 = str2.toLowerCase()
+
+    const len1 = s1.length
+    const len2 = s2.length
+
+    // Create 2D array for dynamic programming
+    const matrix: number[][] = []
+
+    // Initialize first column and row
+    for (let i = 0; i <= len1; i++) {
+      matrix[i] = [i]
+    }
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j
+    }
+
+    // Fill the matrix
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,      // deletion
+          matrix[i][j - 1] + 1,      // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        )
+      }
+    }
+
+    // Calculate similarity score (0-1, where 1 is perfect match)
+    const maxLen = Math.max(len1, len2)
+    if (maxLen === 0) return 1
+    return 1 - matrix[len1][len2] / maxLen
+  }
+
+  // Normalize title for better comparison
+  const normalizeTitle = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[._-]/g, ' ')           // Replace separators with spaces
+      .replace(/\s+/g, ' ')             // Collapse multiple spaces
+      .replace(/\b(the|a|an)\b/g, '')   // Remove articles
+      .replace(/[^\w\s]/g, '')          // Remove special characters
+      .trim()
   }
 
   // Helper to extract episode/season info from filename
   interface EpisodeInfo {
     title: string
+    normalizedTitle: string
     season?: number
     episode?: number
     isMovie: boolean
+    version?: number
   }
 
   const extractEpisodeInfo = (filename: string): EpisodeInfo => {
     const result: EpisodeInfo = {
       title: '',
+      normalizedTitle: '',
       isMovie: false
     }
 
     // Check for movie indicators
-    if (/\b(movie|film|ova)\b/i.test(filename)) {
+    if (/\b(movie|film|ova|special)\b/i.test(filename)) {
       result.isMovie = true
     }
 
     // Try to extract season and episode using various patterns
+    let match: RegExpMatchArray | null = null
+
     // Pattern 1: S01E12 or s01e12
-    let match = filename.match(/S(\d+)E(\d+)/i)
+    match = filename.match(/S(\d+)E(\d+)/i)
     if (match) {
       result.season = parseInt(match[1], 10)
       result.episode = parseInt(match[2], 10)
@@ -507,7 +560,7 @@ const App: React.FC = () => {
 
     // Pattern 2: "- 06" or " - 12" (common anime pattern)
     if (!result.episode) {
-      match = filename.match(/\s-\s(\d+)(?:\s|$|\.)/i)
+      match = filename.match(/\s-\s0*(\d+)(?:\s|$|\.)/i)
       if (match) {
         result.episode = parseInt(match[1], 10)
       }
@@ -515,15 +568,26 @@ const App: React.FC = () => {
 
     // Pattern 3: "EP 12" or "E12" or "Episode 5"
     if (!result.episode) {
-      match = filename.match(/\bEP?\.?\s*(\d+)\b/i) || filename.match(/\bEpisode\s*(\d+)\b/i)
+      match = filename.match(/\bEP?\\.?\s*0*(\d+)\b/i) || filename.match(/\bEpisode\s*0*(\d+)\b/i)
       if (match) {
         result.episode = parseInt(match[1], 10)
       }
     }
 
-    // Pattern 4: Just a number at the end (e.g., "Show Name 06.mkv")
+    // Pattern 4: [12] or (12) - Bracket format
     if (!result.episode) {
-      match = filename.match(/\s(\d{1,3})(?:\s|\.mkv|\.mp4|\.avi|$)/i)
+      match = filename.match(/[\[\(]0*(\d{1,3})[\]\)]/i)
+      if (match) {
+        const num = parseInt(match[1], 10)
+        if (num >= 1 && num <= 999) {
+          result.episode = num
+        }
+      }
+    }
+
+    // Pattern 5: Just a number at the end (e.g., "Show Name 06.mkv")
+    if (!result.episode) {
+      match = filename.match(/\s0*(\d{1,3})(?:\s|\.(mkv|mp4|avi|srt|ass))/i)
       if (match) {
         const num = parseInt(match[1], 10)
         // Only consider it an episode if it's a reasonable episode number (1-999)
@@ -533,65 +597,113 @@ const App: React.FC = () => {
       }
     }
 
+    // Extract version (v2, v3, etc.)
+    match = filename.match(/\bv(\d+)\b/i)
+    if (match) {
+      result.version = parseInt(match[1], 10)
+    }
+
     // Extract title (everything before episode/season indicators)
     let title = filename
       .replace(/\[.*?\]/g, '') // Remove tags
       .replace(/\(.*?\)/g, '')
-      .replace(/\.(mkv|mp4|avi|mp3|wav|flac|aac|wma|wmv|mov|flv|webm)$/i, '')
+      .replace(/\.(mkv|mp4|avi|srt|ass|mp3|wav|flac|aac|wma|wmv|mov|flv|webm)$/i, '')
       .replace(/S\d+E\d+/i, '')
       .replace(/\s-\s\d+.*$/i, '')
-      .replace(/\bEP?\.?\s*\d+.*$/i, '')
+      .replace(/\bEP?\\.?\s*\d+.*$/i, '')
       .replace(/\bEpisode\s*\d+.*$/i, '')
       .replace(/\d{3,4}p/gi, '')
-      .replace(/\b(BD|BluRay|WEB-?DL|HDTV|x264|x265|HEVC|10bit|8bit)\b/gi, '')
+      .replace(/\b(BD|BluRay|WEB-?DL|HDTV|x264|x265|HEVC|10bit|8bit|FLAC|AAC|AC3)\b/gi, '')
       .replace(/[._]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
 
     result.title = title
+    result.normalizedTitle = normalizeTitle(title)
 
     return result
   }
 
-  // Helper to check if subtitle matches the episode
-  const subtitleMatchesEpisode = (
+  // Calculate title similarity score (0-100)
+  const getTitleSimilarity = (videoTitle: string, subtitleTitle: string): number => {
+    const normalizedVideo = normalizeTitle(videoTitle)
+    const normalizedSubtitle = normalizeTitle(subtitleTitle)
+
+    // Calculate Levenshtein similarity
+    const similarity = levenshteinDistance(normalizedVideo, normalizedSubtitle)
+
+    // Return as percentage (0-100)
+    return similarity * 100
+  }
+
+  // Calculate comprehensive match score
+  const calculateMatchScore = (
     subtitle: SubtitleResult,
     videoInfo: EpisodeInfo
-  ): boolean => {
-    // If video is a movie, subtitle should also be a movie
-    if (videoInfo.isMovie) {
-      return /\b(movie|film)\b/i.test(subtitle.filename)
-    }
+  ): { score: number; breakdown: string } => {
+    let score = 0
+    const breakdown: string[] = []
 
-    // If video has episode number, subtitle should match
-    if (videoInfo.episode !== undefined) {
-      const subFilename = subtitle.filename.toLowerCase()
+    // Extract subtitle info
+    const subInfo = extractEpisodeInfo(subtitle.filename)
 
-      // Extract episode number from subtitle filename using same patterns
-      const patterns = [
-        /\s-\s0*(\d+)(?:\s|$|\.)/i, // "- 06" or "- 6"
-        /\bep?\.?\s*0*(\d+)\b/i, // "EP 06" or "E6"
-        /\bepisode\s*0*(\d+)\b/i, // "Episode 6"
-        /s\d+e0*(\d+)/i, // "S01E06"
-        /\s0*(\d{1,3})(?:\s|\.srt|\.ass|$)/i // Just number
-      ]
-
-      for (const pattern of patterns) {
-        const match = subFilename.match(pattern)
-        if (match) {
-          const subEpisode = parseInt(match[1], 10)
-          if (subEpisode === videoInfo.episode) {
-            return true
-          }
-        }
+    // 1. Episode Number Match (100 points)
+    if (videoInfo.episode !== undefined && subInfo.episode !== undefined) {
+      if (videoInfo.episode === subInfo.episode) {
+        score += 100
+        breakdown.push('Episode Match: +100')
+      } else {
+        // Wrong episode is a deal-breaker
+        breakdown.push(`Episode Mismatch: 0 (video: ${videoInfo.episode}, sub: ${subInfo.episode})`)
+        return { score: 0, breakdown: breakdown.join(', ') }
       }
-
-      // No match found
-      return false
+    } else if (videoInfo.episode !== undefined && subInfo.episode === undefined) {
+      // Video has episode but subtitle doesn't - likely wrong match
+      breakdown.push('No Episode in Subtitle: 0')
+      return { score: 0, breakdown: breakdown.join(', ') }
     }
 
-    // If no specific episode info, consider it a potential match
-    return true
+    // 2. Title Similarity (0-50 points)
+    const titleSimilarity = getTitleSimilarity(videoInfo.title, subInfo.title)
+    const titleScore = (titleSimilarity / 100) * 50
+    score += titleScore
+    breakdown.push(`Title Similarity: +${titleScore.toFixed(1)} (${titleSimilarity.toFixed(1)}%)`)
+
+    // 3. Exact Title Match Bonus (30 points)
+    if (videoInfo.normalizedTitle === subInfo.normalizedTitle) {
+      score += 30
+      breakdown.push('Exact Title: +30')
+    }
+
+    // 4. Season Match (25 points)
+    if (videoInfo.season !== undefined && subInfo.season !== undefined) {
+      if (videoInfo.season === subInfo.season) {
+        score += 25
+        breakdown.push('Season Match: +25')
+      }
+    }
+
+    // 5. Movie Match
+    if (videoInfo.isMovie && subInfo.isMovie) {
+      score += 50
+      breakdown.push('Movie Match: +50')
+    } else if (videoInfo.isMovie !== subInfo.isMovie) {
+      // Movie vs Episode mismatch
+      breakdown.push('Movie/Episode Mismatch: 0')
+      return { score: 0, breakdown: breakdown.join(', ') }
+    }
+
+    // 6. Rating (0-10 points)
+    const ratingScore = (subtitle.rating || 0) * 10
+    score += ratingScore
+    breakdown.push(`Rating: +${ratingScore.toFixed(1)}`)
+
+    // 7. Downloads (0-10 points, capped)
+    const downloadScore = Math.min((subtitle.downloads || 0) / 1000, 10)
+    score += downloadScore
+    breakdown.push(`Downloads: +${downloadScore.toFixed(1)}`)
+
+    return { score, breakdown: breakdown.join(', ') }
   }
 
   // Helper to select best subtitle from search results
@@ -603,7 +715,12 @@ const App: React.FC = () => {
 
     // Extract episode info from video filename
     const videoInfo = extractEpisodeInfo(videoFilename)
-    console.log('Video episode info:', videoInfo)
+    console.log('=== VIDEO INFO ===')
+    console.log('Title:', videoInfo.title)
+    console.log('Normalized Title:', videoInfo.normalizedTitle)
+    console.log('Episode:', videoInfo.episode)
+    console.log('Season:', videoInfo.season)
+    console.log('Is Movie:', videoInfo.isMovie)
 
     // Filter by preferred language
     let candidates = results.filter(
@@ -615,35 +732,44 @@ const App: React.FC = () => {
       candidates = results
     }
 
-    // Filter by episode match
-    const exactMatches = candidates.filter((r) => subtitleMatchesEpisode(r, videoInfo))
+    console.log(`\n=== EVALUATING ${candidates.length} CANDIDATES ===`)
 
-    console.log(
-      `Episode filtering: ${candidates.length} candidates -> ${exactMatches.length} exact matches`
-    )
-
-    // Use exact matches if available, otherwise fall back to all candidates
-    const finalCandidates = exactMatches.length > 0 ? exactMatches : candidates
-
-    // Sort by score: episode match bonus + rating * 10 + downloads / 1000
-    const sorted = finalCandidates.sort((a, b) => {
-      const episodeMatchA = subtitleMatchesEpisode(a, videoInfo) ? 100 : 0
-      const episodeMatchB = subtitleMatchesEpisode(b, videoInfo) ? 100 : 0
-
-      const scoreA = episodeMatchA + (a.rating || 0) * 10 + (a.downloads || 0) / 1000
-      const scoreB = episodeMatchB + (b.rating || 0) * 10 + (b.downloads || 0) / 1000
-
-      return scoreB - scoreA
+    // Calculate scores for all candidates
+    const scoredCandidates = candidates.map((subtitle) => {
+      const { score, breakdown } = calculateMatchScore(subtitle, videoInfo)
+      console.log(`\n${subtitle.filename}`)
+      console.log(`  Score: ${score.toFixed(2)}`)
+      console.log(`  Breakdown: ${breakdown}`)
+      return { subtitle, score, breakdown }
     })
 
-    const selected = sorted[0] || null
-    if (selected) {
-      console.log(
-        `Selected subtitle: ${selected.filename} (Episode match: ${subtitleMatchesEpisode(selected, videoInfo)})`
-      )
+    // Filter out zero-score matches (mismatches)
+    const validMatches = scoredCandidates.filter((c) => c.score > 0)
+
+    if (validMatches.length === 0) {
+      console.log('\n❌ No valid matches found (all scores are 0)')
+      return null
     }
 
-    return selected
+    // Sort by score (highest first)
+    const sorted = validMatches.sort((a, b) => b.score - a.score)
+
+    // Get the best match
+    const best = sorted[0]
+
+    console.log(`\n✅ SELECTED BEST MATCH:`)
+    console.log(`  File: ${best.subtitle.filename}`)
+    console.log(`  Score: ${best.score.toFixed(2)}`)
+    console.log(`  Breakdown: ${best.breakdown}`)
+
+    // Optional: Set a minimum confidence threshold (e.g., 60 points)
+    const MIN_CONFIDENCE = 60
+    if (best.score < MIN_CONFIDENCE) {
+      console.log(`\n⚠️ WARNING: Best match score (${best.score.toFixed(2)}) is below confidence threshold (${MIN_CONFIDENCE})`)
+      console.log('   Consider this a low-confidence match')
+    }
+
+    return best.subtitle
   }
 
   const simulateProcessing = async (id: string, tab: DashboardTab) => {
