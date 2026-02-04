@@ -378,7 +378,18 @@ const App: React.FC = () => {
         destinationPath = `${basePath}.${subExt}`
       }
 
-      const downloaded = await window.api.subtitles.download(result.url, destinationPath)
+      // Extract episode info to help with ZIP extraction
+      const videoInfo = extractEpisodeInfo(episode.filename)
+      const downloadOptions = {
+        filename: result.filename,
+        videoFilename: episode.filename, // Pass video filename for robust parsing in main process
+        startSeason: videoInfo.season,
+        startEpisode: videoInfo.episode
+      }
+
+      console.log('Downloading with options:', downloadOptions)
+
+      const downloaded = await window.api.subtitles.download(result.url, destinationPath, downloadOptions)
       const finalPath = typeof downloaded === 'string' ? downloaded : destinationPath
 
       setSearchEpisodes((prev) =>
@@ -437,28 +448,31 @@ const App: React.FC = () => {
   }
 
   // Queue Processing
-  const startProcessingQueue = () => {
+  const startProcessingQueue = async () => {
     if (activeTab === 'MERGER') {
       setIsMergeModalOpen(true)
     } else if (activeTab === 'FILE_MATCH') {
       const { episodes } = getCurrentQueueInfo()
       const itemsToStart = episodes.filter((e) => e.selected && e.stage === ProcessingStage.IDLE)
-      itemsToStart.forEach((ep) => {
-        simulateProcessing(ep.id, activeTab)
-      })
+
+      // Sequential Processing (one by one)
+      for (const ep of itemsToStart) {
+        await simulateProcessing(ep.id, activeTab)
+      }
     }
   }
 
-  const handleMergeConfirm = (_options: MergeOptions) => {
+  const handleMergeConfirm = async (_options: MergeOptions) => {
     setIsMergeModalOpen(false)
     const { episodes } = getCurrentQueueInfo()
     const itemsToStart = episodes.filter(
       (e) => e.selected && e.stage === ProcessingStage.IDLE && e.fileType === 'VIDEO'
     )
 
-    itemsToStart.forEach((ep) => {
-      simulateProcessing(ep.id, 'MERGER')
-    })
+    // Sequential Processing
+    for (const ep of itemsToStart) {
+      await simulateProcessing(ep.id, 'MERGER')
+    }
   }
 
   // Helper to clean filename for search query

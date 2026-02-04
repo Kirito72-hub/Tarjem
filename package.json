@@ -27,6 +27,7 @@
     "@types/adm-zip": "^0.5.7",
     "@types/cheerio": "^0.22.35",
     "adm-zip": "^0.5.16",
+    "anime-name-tool": "^1.0.6",
     "axios": "^1.13.2",
     "cheerio": "^1.2.0",
     "electron-store": "^11.0.2",

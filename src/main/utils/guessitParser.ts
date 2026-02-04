@@ -9,6 +9,9 @@
  */
 
 import { guessit } from 'guessit-js'
+import { parseFileName } from 'anime-name-tool'
+
+// ... (rest of imports)
 
 export interface ParsedMedia {
   title: string
@@ -177,8 +180,13 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
     parsed.episodeTitle = result.episode_title as string
   }
 
+  // Handle release group (string or array)
   if (result.release_group) {
-    parsed.releaseGroup = result.release_group as string
+    if (Array.isArray(result.release_group)) {
+      parsed.releaseGroup = result.release_group[0] // Take first if array
+    } else if (typeof result.release_group === 'string') {
+      parsed.releaseGroup = result.release_group
+    }
   }
 
   if (result.source) {
@@ -195,6 +203,56 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
 
   // Detect anime
   parsed.isAnime = detectAnime(filename, parsed.releaseGroup)
+
+    // Fallback: If season/episode are missing, try anime-name-tool (specialized for Anime)
+    if (parsed.episode === undefined) {
+      try {
+        const animeParsed = parseFileName(filename)
+        if (animeParsed.episode !== null) {
+          if (typeof animeParsed.episode === 'number') {
+            parsed.episode = animeParsed.episode
+          } else if (typeof animeParsed.episode === 'string') {
+             parsed.episode = parseInt(animeParsed.episode, 10)
+          } else if (Array.isArray(animeParsed.episode) && animeParsed.episode.length > 0) {
+             parsed.episode = animeParsed.episode[0]
+          }
+        }
+        // Also grab title if missing? No, guessit usually gets title.
+      } catch (e) {
+        // failed
+      }
+    }
+
+    // Manual Regex Fallbacks (Last Resort)
+    if (parsed.season === undefined || parsed.episode === undefined) {
+        // Pattern: [S2 - 01] or S2 - 01
+        const seasonEpMatch = filename.match(/S(\d+)\s*-\s*(\d+)/i)
+
+    if (seasonEpMatch) {
+       if (parsed.season === undefined) parsed.season = parseInt(seasonEpMatch[1], 10)
+       if (parsed.episode === undefined) parsed.episode = parseInt(seasonEpMatch[2], 10)
+    }
+
+    // Pattern: S02 E03
+    if (parsed.season === undefined || parsed.episode === undefined) {
+      const s00e00 = filename.match(/S(\d+)\s*E(\d+)/i)
+      if (s00e00) {
+        if (parsed.season === undefined) parsed.season = parseInt(s00e00[1], 10)
+        if (parsed.episode === undefined) parsed.episode = parseInt(s00e00[2], 10)
+      }
+    }
+    
+    // Pattern: SxEE
+    if (parsed.season === undefined || parsed.episode === undefined) {
+        const sxee = filename.match(/(\d+)x(\d+)/)
+        if (sxee) {
+            if (parsed.season === undefined) parsed.season = parseInt(sxee[1], 10)
+            if (parsed.episode === undefined) parsed.episode = parseInt(sxee[2], 10)
+        }
+    }
+
+
+  }
 
   return parsed
 }
