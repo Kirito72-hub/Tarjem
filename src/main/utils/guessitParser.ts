@@ -122,8 +122,21 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
 
   const result = guessit(filename, options)
 
-  // Extract title - guessit returns it as 'title'
-  const title = (result.title as string) || extractFallbackTitle(filename)
+  // Extract title - guessit returns it as 'title' (string or array)
+  let rawTitle: string | undefined
+
+  if (Array.isArray(result.title)) {
+    rawTitle = result.title.join(' ')
+  } else if (typeof result.title === 'string') {
+    rawTitle = result.title
+  }
+
+  // Sanity check: if title looks like garbage (e.g. "with subtitles"), ignore it
+  if (rawTitle && /^(with subtitles|subbed|hardsub|softsub)$/i.test(rawTitle)) {
+    rawTitle = undefined
+  }
+
+  const title = rawTitle || extractFallbackTitle(filename)
 
   // Determine type
   let type: 'movie' | 'episode' | undefined
@@ -136,7 +149,7 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
   // Build ParsedMedia object
   const parsed: ParsedMedia = {
     title,
-    cleanTitle: normalizeTitle(title),
+    cleanTitle: normalizeTitle(title || ''),
     originalFilename: filename,
     type
   }
