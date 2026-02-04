@@ -21,7 +21,7 @@ export const TitleBar: React.FC = () => {
     <div className="h-8 bg-[#0F111A] flex items-center justify-between px-3 select-none draggable border-b border-white/5 w-full z-50">
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-purple-500/20 border border-purple-500/50"></div>
-        <span className="text-xs font-medium text-gray-400 tracking-wide">Tarjem v1.0.2</span>
+        <span className="text-xs font-medium text-gray-400 tracking-wide">Tarjem v1.0.5-beta</span>
       </div>
       <div className="flex items-center gap-3 no-drag">
         <button

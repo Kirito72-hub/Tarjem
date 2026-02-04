@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.4-beta (2026-02-02)
+## v1.0.5-beta (2026-02-04)
 
 ### 🎯 Improved Episode Matching
 
