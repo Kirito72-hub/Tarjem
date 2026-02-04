@@ -44,11 +44,12 @@ export class ProviderRegistry {
           console.error('Failed to parse sources from store', e)
         }
       }
-      
+
       // If still empty (nothing saved), use defaults
       if (activeIds.length === 0) {
-         // This logic mimics default App state
-         activeIds = ['opensubtitles', 'subdl', 'animeslayer'] 
+        // This logic mimics default App state
+        // SubSource has bigger quota, so prioritize it first
+        activeIds = ['subsource', 'subdl', 'opensubtitles']
       }
     }
 
@@ -71,11 +72,11 @@ export class ProviderRegistry {
 
     const resultsArray = await Promise.all(promises)
     const flattened = resultsArray.flat()
-    
+
     // De-duplicate by URL
     const seenUrls = new Set()
     const uniqueResults: SubtitleResult[] = []
-    
+
     for (const res of flattened) {
       if (!seenUrls.has(res.url)) {
         seenUrls.add(res.url)
@@ -97,7 +98,7 @@ export class ProviderRegistry {
   ): Promise<SubtitleResult[]> {
     // Similar dynamic logic
     let activeIds: string[] = []
-     if (enabledIds && enabledIds.length > 0) {
+    if (enabledIds && enabledIds.length > 0) {
       activeIds = enabledIds
     } else {
       const savedSourcesStr = this.store.get('subtitle_sources')
@@ -108,12 +109,12 @@ export class ProviderRegistry {
             activeIds = sources.filter((s: any) => s.enabled).map((s: any) => s.id)
           }
         } catch (e) {
-             // ignore
+          // ignore
         }
       }
       if (activeIds.length === 0) activeIds = ['opensubtitles'] // Default for hash?
     }
-    
+
     console.log(`[ProviderRegistry] Hash search providers: ${activeIds.join(', ')}`)
 
     const promises = activeIds.map(async (id) => {

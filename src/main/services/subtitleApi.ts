@@ -22,7 +22,7 @@ export class OpenSubtitlesService {
   }
 
   private async getHeaders() {
-    let headers: any = {
+    const headers: any = {
       'Api-Key': this.getApiKey(),
       'Content-Type': 'application/json',
       'User-Agent': 'Tarjem v1.0.0'

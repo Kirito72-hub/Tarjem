@@ -42,7 +42,7 @@ export class FFmpegService {
         return
       }
 
-      ffmpeg().getAvailableFormats((err, formats) => {
+      ffmpeg().getAvailableFormats((err, _formats) => {
         if (err) {
           reject(err)
         } else {
@@ -80,22 +80,37 @@ export class FFmpegService {
         .input(videoPath)
         .input(subtitlePath)
         // Map video and audio streams from input 0 (video file)
-        .outputOptions('-map 0:v') // Map all video streams
-        .outputOptions('-map 0:a') // Map all audio streams
-        // Map subtitle from input 1 (subtitle file)
-        .outputOptions('-map 1:0') // Map the subtitle
-        .outputOptions('-c:v copy') // Copy video without re-encoding
-        .outputOptions('-c:a copy') // Copy audio without re-encoding
+        // Map ALL streams from input 0 (video, audio, attachments/fonts)
+        .outputOptions('-map 0')
+        // But exclude existing subtitles from input 0
+        .outputOptions('-map -0:s')
+
+        // Map the new subtitle from input 1
+        .outputOptions('-map 1:0')
+        .outputOptions('-c copy') // Base: copy everything
+        .outputOptions('-max_interleave_delta 0') // Fix potential buffering issues
         // Subtitle codec handled below based on extension
         .output(outputPath)
         .on('start', (commandLine) => {
           console.log('Spawned Ffmpeg with command: ' + commandLine)
         })
-        .on('progress', (progress) => {
-          if (onProgress && progress.percent) {
-            onProgress(Math.round(progress.percent))
+        .on('progress', (() => {
+          // Throttle progress updates to prevent UI flickering
+          let lastProgress = -1
+          let lastUpdate = 0
+          return (progress: { percent?: number }) => {
+            if (onProgress && progress.percent) {
+              const now = Date.now()
+              const currentProgress = Math.round(progress.percent)
+              // Only update if progress changed by at least 1% or 100ms elapsed
+              if (currentProgress !== lastProgress && (currentProgress - lastProgress >= 1 || now - lastUpdate >= 100)) {
+                lastProgress = currentProgress
+                lastUpdate = now
+                onProgress(currentProgress)
+              }
+            }
           }
-        })
+        })())
         .on('error', (err) => {
           console.error('An error occurred: ' + err.message)
           reject(err)
@@ -112,8 +127,15 @@ export class FFmpegService {
         command.outputOptions('-c:s mov_text')
         command.outputOptions('-metadata:s:s:0 language=ara') // Set Arabic language tag
       } else if (outExt === '.mkv') {
-        // MKV can handle any subtitle format - copy to preserve original styling
-        command.outputOptions('-c:s copy')
+        // MKV container supports almost all subtitle formats
+        // If input is .ass/.ssa, use copy to preserve advanced styling
+        const subExt = path.extname(subtitlePath).toLowerCase()
+        if (subExt === '.ass' || subExt === '.ssa') {
+          command.outputOptions('-c:s copy')
+        } else {
+          // Default to subrip for SRT and others to ensure compatibility
+          command.outputOptions('-c:s subrip')
+        }
         command.outputOptions('-metadata:s:s:0 language=ara') // Set Arabic language tag
       } else {
         // Default fallback

@@ -74,6 +74,12 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = ({
           textColor: 'text-red-400',
           icon: <AlertCircle size={14} className="text-red-400" />
         }
+      case ProcessingStage.NOT_FOUND:
+        return {
+          barColor: 'bg-orange-500',
+          textColor: 'text-orange-400',
+          icon: <AlertCircle size={14} className="text-orange-400" />
+        }
       default:
         return {
           barColor: 'bg-gray-600',
@@ -87,6 +93,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = ({
   const isProcessing =
     episode.stage !== ProcessingStage.COMPLETED &&
     episode.stage !== ProcessingStage.ERROR &&
+    episode.stage !== ProcessingStage.NOT_FOUND &&
     episode.stage !== ProcessingStage.IDLE &&
     episode.stage !== ProcessingStage.REVIEW
   const isCompleted = episode.stage === ProcessingStage.COMPLETED
@@ -141,12 +148,14 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = ({
             {/* If IDLE or Review or Subtitle, show status message. Else show progress bar */}
             {episode.stage === ProcessingStage.IDLE ||
               episode.stage === ProcessingStage.REVIEW ||
+              episode.stage === ProcessingStage.NOT_FOUND ||
+              episode.stage === ProcessingStage.ERROR ||
               isSubtitle ? (
               <div className="text-xs text-gray-600 mt-1">{episode.statusMessage}</div>
             ) : (
               <div className="w-full max-w-[200px] h-1 bg-gray-800 rounded-full mt-2 overflow-hidden">
                 <div
-                  className={`h-full ${styles.barColor} transition-all duration-300`}
+                  className={`h-full ${styles.barColor} transition-[width] duration-500 ease-out`}
                   style={{ width: `${episode.progress}%` }}
                 />
               </div>

@@ -11,10 +11,14 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
-  - node_modules/@ffmpeg-installer/**
+  - node_modules/ffmpeg-static/**
   - node_modules/fluent-ffmpeg/**
 win:
   executableName: tarjem
+  target:
+    - portable
+portable:
+  artifactName: ${name}-${version}-win-portable.${ext}
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

@@ -42,6 +42,8 @@ export interface MetadataResult {
   overview?: string
   posterUrl?: string
   isAnime?: boolean
+  season?: number
+  episode?: number
 }
 
 export class TMDbService {

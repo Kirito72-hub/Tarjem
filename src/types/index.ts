@@ -6,7 +6,8 @@ export enum ProcessingStage {
   REVIEW = 'REVIEW',
   MERGING = 'MERGING',
   COMPLETED = 'COMPLETED',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
+  NOT_FOUND = 'NOT_FOUND'
 }
 
 export interface EpisodeFile {
@@ -62,7 +63,7 @@ export interface ElectronAPI {
     onWindowStateChange: (callback: (state: 'maximized' | 'normal') => void) => void
   }
   files: {
-    selectFiles: (tab?: DashboardTab) => Promise<string[]>
+    selectFiles: (tab?: DashboardTab | 'DIRECTORY') => Promise<string[]>
     onFileDrop: (callback: (files: any[]) => void) => void
   }
   hashing: {
@@ -70,10 +71,15 @@ export interface ElectronAPI {
     onProgress: (callback: (progress: number) => void) => () => void
   }
   subtitles: {
-    search: (query: string, language?: string, metadata?: any) => Promise<any>
+    search: (
+      query: string,
+      language?: string,
+      metadata?: any,
+      enabledSources?: string[]
+    ) => Promise<any>
     searchByHash: (hash: string, language?: string) => Promise<any>
     searchByQuery: (query: string, language?: string) => Promise<any>
-    download: (downloadData: any, destination: string) => Promise<string>
+    download: (downloadData: any, destination: string, options?: any) => Promise<string>
   }
   utils: {
     parseFilename: (filename: string) => Promise<any>
@@ -94,4 +100,22 @@ export interface ElectronAPI {
     get: (key: string) => Promise<any>
     set: (key: string, value: any) => Promise<void>
   }
+}
+
+// Compatibility types
+export type FileStatus = ProcessingStage
+export type TabType = DashboardTab | 'auto'
+
+export interface UserSettings {
+  preferredLanguages: string[]
+  enabledSources: string[]
+  autoDownload: boolean
+  defaultOutputPath: string
+}
+
+export interface FileInfo {
+  id: string
+  status: FileStatus
+  progress?: number
+  error?: string
 }

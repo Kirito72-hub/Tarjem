@@ -1,0 +1,177 @@
+
+> tarjem@1.0.1 build:win
+> npm run build && electron-builder --win
+
+
+> tarjem@1.0.1 build
+> npm run typecheck && electron-vite build
+
+
+> tarjem@1.0.1 typecheck
+> npm run typecheck:node && npm run typecheck:web
+
+
+> tarjem@1.0.1 typecheck:node
+> tsc --noEmit -p tsconfig.node.json --composite false
+
+
+> tarjem@1.0.1 typecheck:web
+> tsc --noEmit -p tsconfig.web.json --composite false
+
+[36mvite v7.3.1 [32mbuilding ssr environment for production...[36m[39m
+(node:71472) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/Ahmed%20Saudi/Documents/vsCodeProjects/Tarjem/Tarjem/postcss.config.js?t=1769752553385 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+transforming...
+[32m✓[39m 13 modules transformed.
+rendering chunks...
+[2mout/main/[22m[36mindex.js  [39m[1m[2m66.91 kB[22m[1m[22m
+[32m✓ built in 545ms[39m
+[36mvite v7.3.1 [32mbuilding ssr environment for production...[36m[39m
+transforming...
+[32m✓[39m 1 modules transformed.
+rendering chunks...
+[2mout/preload/[22m[36mindex.js  [39m[1m[2m2.63 kB[22m[1m[22m
+[32m✓ built in 21ms[39m
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 1714 modules transformed.
+rendering chunks...
+[2m../../out/renderer/[22m[32mindex.html                 [39m[1m[2m  0.55 kB[22m[1m[22m
+[2m../../out/renderer/[22m[35massets/index-Ng3hu05_.css  [39m[1m[2m 36.64 kB[22m[1m[22m
+[2m../../out/renderer/[22m[36massets/index-xFNlqLPN.js   [39m[1m[33m690.66 kB[39m[22m
+[32m✓ built in 2.89s[39m
+  • electron-builder  version=26.4.0 os=10.0.26200
+  • loaded configuration  file=C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\electron-builder.yml
+  • skipped dependencies rebuild  reason=npmRebuild is set to false
+  • packaging       platform=win32 arch=x64 electron=31.7.7 appOutDir=dist\win-unpacked
+  • cannot find path for dependency  name=undefined reference=undefined
+  • updating asar integrity executable resource  executablePath=dist\win-unpacked\tarjem.exe
+  ⨯ mkdir C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\.cache \winCodeSign: The system cannot find the path specified.
+github.com/develar/go-fs-util.EnsureDir
+	/Users/runner/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:75
+github.com/develar/app-builder/pkg/download.CheckCache
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:158
+github.com/develar/app-builder/pkg/download.DownloadArtifact
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:91
+github.com/develar/app-builder/pkg/download.downloadFromGithub
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:63
+github.com/develar/app-builder/pkg/download.DownloadWinCodeSign
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:58
+github.com/develar/app-builder/pkg/rcedit.editResources
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:30
+github.com/develar/app-builder/pkg/rcedit.ConfigureCommand.func1
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:25
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+	/Users/runner/work/app-builder/app-builder/main.go:90
+runtime.main
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/proc.go:267
+runtime.goexit
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/asm_amd64.s:1650  
+  ⨯ mkdir C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\.cache \winCodeSign: The system cannot find the path specified.
+github.com/develar/go-fs-util.EnsureDir
+	/Users/runner/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:75
+github.com/develar/app-builder/pkg/download.CheckCache
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:158
+github.com/develar/app-builder/pkg/download.DownloadArtifact
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:91
+github.com/develar/app-builder/pkg/download.downloadFromGithub
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:63
+github.com/develar/app-builder/pkg/download.DownloadWinCodeSign
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:58
+github.com/develar/app-builder/pkg/rcedit.editResources
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:30
+github.com/develar/app-builder/pkg/rcedit.ConfigureCommand.func1
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:25
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+	/Users/runner/work/app-builder/app-builder/main.go:90
+runtime.main
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/proc.go:267
+runtime.goexit
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/asm_amd64.s:1650  
+  ⨯ mkdir C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\.cache \winCodeSign: The system cannot find the path specified.
+github.com/develar/go-fs-util.EnsureDir
+	/Users/runner/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:75
+github.com/develar/app-builder/pkg/download.CheckCache
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:158
+github.com/develar/app-builder/pkg/download.DownloadArtifact
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:91
+github.com/develar/app-builder/pkg/download.downloadFromGithub
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:63
+github.com/develar/app-builder/pkg/download.DownloadWinCodeSign
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:58
+github.com/develar/app-builder/pkg/rcedit.editResources
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:30
+github.com/develar/app-builder/pkg/rcedit.ConfigureCommand.func1
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:25
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+	/Users/runner/work/app-builder/app-builder/main.go:90
+runtime.main
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/proc.go:267
+runtime.goexit
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/asm_amd64.s:1650  
+  ⨯ mkdir C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\.cache \winCodeSign: The system cannot find the path specified.
+github.com/develar/go-fs-util.EnsureDir
+	/Users/runner/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:75
+github.com/develar/app-builder/pkg/download.CheckCache
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:158
+github.com/develar/app-builder/pkg/download.DownloadArtifact
+	/Users/runner/work/app-builder/app-builder/pkg/download/artifactDownloader.go:91
+github.com/develar/app-builder/pkg/download.downloadFromGithub
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:63
+github.com/develar/app-builder/pkg/download.DownloadWinCodeSign
+	/Users/runner/work/app-builder/app-builder/pkg/download/tool.go:58
+github.com/develar/app-builder/pkg/rcedit.editResources
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:30
+github.com/develar/app-builder/pkg/rcedit.ConfigureCommand.func1
+	/Users/runner/work/app-builder/app-builder/pkg/rcedit/rcedit.go:25
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+	/Users/runner/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+	/Users/runner/work/app-builder/app-builder/main.go:90
+runtime.main
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/proc.go:267
+runtime.goexit
+	/Users/runner/hostedtoolcache/go/1.21.13/arm64/src/runtime/asm_amd64.s:1650  
+  ⨯ C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1  failedTask=build stackTrace=Error: C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1
+    at ChildProcess.<anonymous> (C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\node_modules\builder-util\src\util.ts:272:14)
+    at Object.onceWrapper (node:events:623:26)
+    at ChildProcess.emit (node:events:508:28)
+    at ChildProcess.cp.emit (C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\node_modules\cross-spawn\lib\enoent.js:34:29)
+    at maybeClose (node:internal/child_process:1101:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:305:5)

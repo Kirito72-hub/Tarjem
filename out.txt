@@ -1,0 +1,14 @@
+
+> tarjem@1.0.1 typecheck:node
+> tsc --noEmit -p tsconfig.node.json --composite false
+
+src/main/index.ts(70,5): error TS18047: 'mainWindow' is possibly 'null'.
+src/main/index.ts(74,5): error TS18047: 'mainWindow' is possibly 'null'.
+src/main/index.ts(78,5): error TS18047: 'mainWindow' is possibly 'null'.
+src/main/index.ts(163,44): error TS6133: 'event' is declared but its value is never read.
+src/main/index.ts(571,12): error TS18047: 'store' is possibly 'null'.
+src/main/index.ts(575,5): error TS18047: 'store' is possibly 'null'.
+src/main/services/downloader.ts(3,1): error TS6133: 'path' is declared but its value is never read.
+src/main/services/ffmpeg.ts(45,42): error TS6133: 'formats' is declared but its value is never read.
+src/main/services/providers/adapters.ts(51,33): error TS2339: Property 'season' does not exist on type 'MetadataResult'.
+src/main/services/providers/adapters.ts(52,34): error TS2339: Property 'episode' does not exist on type 'MetadataResult'.

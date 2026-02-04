@@ -29,7 +29,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ progress, status }) =>
   return (
     <div className="w-full bg-dark-border rounded-full h-2 overflow-hidden">
       <div
-        className={`h-full transition-all duration-300 ${getStatusColor()}`}
+        className={`h-full transition-[width] duration-500 ease-out ${getStatusColor()}`}
         style={{ width: `${progress}%` }}
       />
     </div>

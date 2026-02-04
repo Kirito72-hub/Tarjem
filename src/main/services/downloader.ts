@@ -1,6 +1,6 @@
 import axios from 'axios'
 import fs from 'fs'
-import path from 'path'
+
 import { pipeline } from 'stream'
 import { promisify } from 'util'
 

@@ -30,11 +30,7 @@ export interface SubtitleProvider {
   /**
    * Search for subtitles based on query, metadata, and language
    */
-  search(
-    query: string,
-    metadata: MetadataResult,
-    language: string
-  ): Promise<SubtitleResult[]>
+  search(query: string, metadata: MetadataResult, language: string): Promise<SubtitleResult[]>
 
   /**
    * Resolve a detailed download link given a subtitle ID (if necessary)

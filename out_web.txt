@@ -1,0 +1,17 @@
+
+> tarjem@1.0.1 typecheck:web
+> tsc --noEmit -p tsconfig.web.json --composite false
+
+src/renderer/src/App.tsx(448,31): error TS6133: 'options' is declared but its value is never read.
+src/renderer/src/App.tsx(804,13): error TS6133: 'removeListener' is declared but its value is never read.
+src/renderer/src/App.tsx(973,19): error TS6133: 'removeProgressListener' is declared but its value is never read.
+src/renderer/src/App.tsx(1120,13): error TS6133: 'removeProgressListener' is declared but its value is never read.
+src/renderer/src/components/FileSelectionModal.tsx(33,9): error TS6133: 'totalSize' is declared but its value is never read.
+src/renderer/src/components/FileSelectionModal.tsx(85,29): error TS6133: 'index' is declared but its value is never read.
+src/renderer/src/components/ProgressBar.tsx(2,10): error TS2305: Module '"../../../types"' has no exported member 'FileStatus'.
+src/renderer/src/components/SettingsView.tsx(57,55): error TS2345: Argument of type '"DIRECTORY"' is not assignable to parameter of type 'DashboardTab | undefined'.
+src/renderer/src/components/Toast.tsx(1,17): error TS6133: 'useEffect' is declared but its value is never read.
+src/renderer/src/components/Toast.tsx(3,24): error TS6133: 'ToastType' is declared but its value is never read.
+src/renderer/src/store/appStore.ts(2,10): error TS2305: Module '"../../../types"' has no exported member 'FileInfo'.
+src/renderer/src/store/appStore.ts(2,20): error TS2305: Module '"../../../types"' has no exported member 'TabType'.
+src/renderer/src/store/appStore.ts(2,29): error TS2305: Module '"../../../types"' has no exported member 'UserSettings'.

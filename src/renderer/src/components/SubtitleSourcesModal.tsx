@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Globe, Check, Save, RotateCcw } from 'lucide-react'
+import { X, Globe, Check, Save, RotateCcw, GripVertical } from 'lucide-react'
 import { SubtitleSource } from '../../../types'
 import { LanguageDropdown } from './LanguageDropdown'
 
@@ -22,6 +22,8 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
 }) => {
   const [localSources, setLocalSources] = useState<SubtitleSource[]>(sources)
   const [isLangOpen, setIsLangOpen] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   // Reset local state when modal opens or parent sources change
   useEffect(() => {
@@ -41,6 +43,43 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
     onClose()
   }
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+
+    const newSources = [...localSources]
+    const [removed] = newSources.splice(draggedIndex, 1)
+    newSources.splice(index, 0, removed)
+    setLocalSources(newSources)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
   const enabledCount = localSources.filter((s) => s.enabled).length
 
   return (
@@ -50,7 +89,7 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
         <div className="h-14 bg-[#161B22] border-b border-white/5 flex items-center justify-between px-5 select-none">
           <div>
             <h3 className="text-sm font-semibold text-white">Subtitle Sources</h3>
-            <p className="text-xs text-gray-500">Select where to search for subtitles</p>
+            <p className="text-xs text-gray-500">Drag to reorder priority</p>
           </div>
           <button
             onClick={onClose}
@@ -74,17 +113,34 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
           </div>
 
           <div className="space-y-1">
-            {localSources.map((source) => (
+            {localSources.map((source, index) => (
               <div
                 key={source.id}
-                onClick={() => toggleSource(source.id)}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-all border ${
-                  source.enabled
-                    ? 'bg-purple-500/10 border-purple-500/20'
-                    : 'bg-transparent border-transparent hover:bg-white/5'
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center justify-between px-3 py-3 rounded-lg cursor-grab active:cursor-grabbing transition-all border ${
+                  dragOverIndex === index
+                    ? 'border-purple-500 bg-purple-500/20'
+                    : draggedIndex === index
+                      ? 'opacity-50 border-transparent'
+                      : source.enabled
+                        ? 'bg-purple-500/10 border-purple-500/20'
+                        : 'bg-transparent border-transparent hover:bg-white/5'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                {/* Drag Handle */}
+                <div className="text-gray-500 hover:text-gray-300 mr-2 cursor-grab">
+                  <GripVertical size={16} />
+                </div>
+
+                <div
+                  className="flex items-center gap-3 flex-1"
+                  onClick={() => toggleSource(source.id)}
+                >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       source.enabled ? 'bg-purple-500 text-white' : 'bg-[#1C212E] text-gray-500'
@@ -103,7 +159,8 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
                 </div>
 
                 <div
-                  className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                  onClick={() => toggleSource(source.id)}
+                  className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
                     source.enabled ? 'bg-purple-500 border-purple-500' : 'border-gray-600'
                   }`}
                 >

@@ -5,10 +5,14 @@ import { OpenSubtitlesService, SubDLService } from '../subtitleApi'
 export class OpenSubtitlesAdapter implements SubtitleProvider {
   readonly id = 'opensubtitles'
   readonly name = 'OpenSubtitles'
-  
+
   constructor(private service: OpenSubtitlesService) {}
 
-  async search(query: string, metadata: MetadataResult, language: string): Promise<SubtitleResult[]> {
+  async search(
+    query: string,
+    metadata: MetadataResult,
+    language: string
+  ): Promise<SubtitleResult[]> {
     try {
       // Use metadata if available, otherwise just query
       const results = await this.service.search(query, language, metadata.imdbId)
@@ -42,16 +46,20 @@ export class SubDLAdapter implements SubtitleProvider {
 
   constructor(private service: SubDLService) {}
 
-  async search(query: string, metadata: MetadataResult, language: string): Promise<SubtitleResult[]> {
+  async search(
+    query: string,
+    metadata: MetadataResult,
+    language: string
+  ): Promise<SubtitleResult[]> {
     try {
       const params: any = {
-          query: metadata.title || query,
-          language,
-          type: metadata.type || 'movie',
-          startSeason: metadata.season,
-          startEpisode: metadata.episode,
-          imdbId: metadata.imdbId,
-          tmdbId: metadata.tmdbId
+        query: metadata.title || query,
+        language,
+        type: metadata.type || 'movie',
+        startSeason: metadata.season,
+        startEpisode: metadata.episode,
+        imdbId: metadata.imdbId,
+        tmdbId: metadata.tmdbId
       }
       const res = await this.service.search(params)
       return res?.results || []
@@ -60,9 +68,9 @@ export class SubDLAdapter implements SubtitleProvider {
       return []
     }
   }
-  
+
   async getDownloadLink(id: string): Promise<string> {
-      // SubDL usually returns direct links in search results
-      return id
+    // SubDL usually returns direct links in search results
+    return id
   }
 }

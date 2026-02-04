@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
-import { ToastMessage, ToastType, useToastStore } from '../store/toastStore'
+import { ToastMessage, useToastStore } from '../store/toastStore'
 
 const icons = {
   success: <CheckCircle size={20} className="text-green-400" />,

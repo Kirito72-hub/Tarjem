@@ -122,30 +122,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex p-1 bg-[#1C212E] rounded-lg border border-white/5 w-fit">
             <button
               onClick={() => onTabChange('FILE_MATCH')}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab === 'FILE_MATCH'
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
+                activeTab === 'FILE_MATCH'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
             >
               <FileSearch size={14} />
               Auto Match
             </button>
             <button
               onClick={() => onTabChange('WEB_SEARCH')}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab === 'WEB_SEARCH'
-                ? 'bg-amber-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
+                activeTab === 'WEB_SEARCH'
+                  ? 'bg-amber-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
             >
               <Globe size={14} />
               Manual Search
             </button>
             <button
               onClick={() => onTabChange('MERGER')}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab === 'MERGER'
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
+                activeTab === 'MERGER'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
             >
               <Merge size={14} />
               Merger
@@ -199,12 +202,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <button
                 onClick={onStartQueue}
                 disabled={!canStart}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all text-sm font-medium shadow-lg ${canStart
-                  ? activeTab === 'FILE_MATCH'
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-purple-900/20 active:scale-95'
-                    : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-900/20 active:scale-95'
-                  : 'bg-white/5 border border-white/5 text-gray-500 cursor-not-allowed'
-                  }`}
+                className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all text-sm font-medium shadow-lg ${
+                  canStart
+                    ? activeTab === 'FILE_MATCH'
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-purple-900/20 active:scale-95'
+                      : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-900/20 active:scale-95'
+                    : 'bg-white/5 border border-white/5 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 {activeTab === 'FILE_MATCH' ? <Search size={16} /> : <Merge size={16} />}
                 {activeTab === 'FILE_MATCH' ? 'Start Matching' : 'Start Merging'}
@@ -402,7 +406,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex items-center gap-3">
                         <Captions size={18} className="text-gray-600 group-hover:text-gray-400" />
-                        <span className="text-sm font-medium text-gray-300 group-hover:text-white truncate" title={result.filename}>
+                        <span
+                          className="text-sm font-medium text-gray-300 group-hover:text-white truncate"
+                          title={result.filename}
+                        >
                           {result.filename}
                         </span>
                       </div>
@@ -411,18 +418,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="w-24 text-sm text-gray-500 flex items-center gap-1.5">
                       <Globe size={12} /> {result.source}
                     </div>
-                    <div className="w-20 text-sm text-gray-400 uppercase">{result.subtitleType || 'SRT'}</div>
-                    <div className="w-32 text-sm text-gray-400 truncate" title={result.owner || 'Unknown'}>{result.owner || '-'}</div>
-                    <div className="w-16 text-center text-sm text-gray-400">{result.hi ? 'Yes' : '-'}</div>
-                    <div className="w-48 text-sm text-gray-500 truncate italic" title={result.caption || ''}>{result.caption || '-'}</div>
+                    <div className="w-20 text-sm text-gray-400 uppercase">
+                      {result.subtitleType || 'SRT'}
+                    </div>
+                    <div
+                      className="w-32 text-sm text-gray-400 truncate"
+                      title={result.owner || 'Unknown'}
+                    >
+                      {result.owner || '-'}
+                    </div>
+                    <div className="w-16 text-center text-sm text-gray-400">
+                      {result.hi ? 'Yes' : '-'}
+                    </div>
+                    <div
+                      className="w-48 text-sm text-gray-500 truncate italic"
+                      title={result.caption || ''}
+                    >
+                      {result.caption || '-'}
+                    </div>
                     <div className="w-16 text-right">
                       <button
                         onClick={() => onDownloadSubtitle(result.id)}
                         disabled={downloadingIds.has(result.id)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-2 ml-auto ${downloadingIds.has(result.id)
-                          ? 'bg-amber-600/50 text-white cursor-not-allowed animate-pulse'
-                          : 'bg-white/5 hover:bg-amber-600 hover:text-white text-gray-400'
-                          }`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-2 ml-auto ${
+                          downloadingIds.has(result.id)
+                            ? 'bg-amber-600/50 text-white cursor-not-allowed animate-pulse'
+                            : 'bg-white/5 hover:bg-amber-600 hover:text-white text-gray-400'
+                        }`}
                       >
                         {downloadingIds.has(result.id) ? (
                           <>
