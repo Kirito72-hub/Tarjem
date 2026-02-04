@@ -204,20 +204,34 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
   // Detect anime
   parsed.isAnime = detectAnime(filename, parsed.releaseGroup)
 
-    // Fallback: If season/episode are missing, try anime-name-tool (specialized for Anime)
-    if (parsed.episode === undefined) {
+    // Anime Specific Parsing (anime-name-tool)
+    // Run if it's anime, regardless of whether guessit found something.
+    // This repairs cases where guessit picks absolute numbering (e.g. 27) instead of Season/Episode (S2 - 03).
+    if (parsed.isAnime) {
       try {
         const animeParsed = parseFileName(filename)
+        
+        // 1. Episode Priority
         if (animeParsed.episode !== null) {
+          let epNum: number | undefined
           if (typeof animeParsed.episode === 'number') {
-            parsed.episode = animeParsed.episode
+            epNum = animeParsed.episode
           } else if (typeof animeParsed.episode === 'string') {
-             parsed.episode = parseInt(animeParsed.episode, 10)
+             epNum = parseInt(animeParsed.episode, 10)
           } else if (Array.isArray(animeParsed.episode) && animeParsed.episode.length > 0) {
-             parsed.episode = animeParsed.episode[0]
+             epNum = animeParsed.episode[0]
+          }
+
+          if (epNum !== undefined && !isNaN(epNum)) {
+             parsed.episode = epNum
           }
         }
-        // Also grab title if missing? No, guessit usually gets title.
+
+        // 2. Season Priority (if available in runtime object)
+        const animeSeason = (animeParsed as any).season
+        if (typeof animeSeason === 'number') {
+           parsed.season = animeSeason
+        }
       } catch (e) {
         // failed
       }

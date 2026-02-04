@@ -22,6 +22,7 @@
 - Main download handler re-throws episode mismatch errors for retry
 - Added `getSortedCandidates()` helper for retry logic (tries up to 5 candidates)
 - Improved catch block to detect "found in ZIP archive" errors
+- **Fix:** Resolved absolute vs season numbering conflict (e.g. JJK S2 Episode 3 detection) by prioritizing `anime-name-tool` for anime content
 
 ---
 
