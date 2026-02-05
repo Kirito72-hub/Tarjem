@@ -13,6 +13,7 @@ const api = {
       ipcRenderer.on('window:unmaximized', () => callback('normal'))
     }
   },
+  getVersion: () => ipcRenderer.invoke('app:getVersion'),
 
   // File operations (to be implemented)
   files: {
