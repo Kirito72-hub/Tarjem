@@ -44,6 +44,7 @@ export interface MetadataResult {
   isAnime?: boolean
   season?: number
   episode?: number
+  englishTitle?: string
 }
 
 export class TMDbService {
