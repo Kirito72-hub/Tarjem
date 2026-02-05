@@ -28,6 +28,8 @@ export interface ParsedMedia {
   container?: string
   // Original filename for reference
   originalFilename: string
+  // Which parser strategy was used
+  parserUsed?: 'guessit' | 'anime-name-tool' | 'explicit-pattern' | 'fallback-regex'
 }
 
 // Anime release groups that indicate anime content
@@ -160,8 +162,10 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
   const parsed: ParsedMedia = {
     title,
     cleanTitle: normalizeTitle(title || ''),
+    cleanTitle: normalizeTitle(title || ''),
     originalFilename: filename,
-    type
+    type,
+    parserUsed: 'guessit' // Default
   }
 
   // Add optional fields if present
@@ -255,6 +259,8 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
                  parsed.title = cleanAnimeTitle;
                  parsed.cleanTitle = normalizeTitle(cleanAnimeTitle);
             }
+            // Mark as refined by anime tool
+            parsed.parserUsed = 'anime-name-tool'
         }
     } catch (e) {
         // parsing failed, ignore
@@ -271,6 +277,7 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
         // Overwrite season/episode as this pattern is definitive (e.g. S2 - 03)
         parsed.season = s
         parsed.episode = e
+        parsed.parserUsed = 'explicit-pattern'
   }
 
   // 3. Fallback Regex patterns (Low Priority)
@@ -283,6 +290,7 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
       if (s00e00) {
         if (parsed.season === undefined) parsed.season = parseInt(s00e00[1], 10)
         if (parsed.episode === undefined) parsed.episode = parseInt(s00e00[2], 10)
+        parsed.parserUsed = 'fallback-regex'
       }
     }
     
@@ -292,6 +300,7 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
         if (sxee) {
             if (parsed.season === undefined) parsed.season = parseInt(sxee[1], 10)
             if (parsed.episode === undefined) parsed.episode = parseInt(sxee[2], 10)
+            parsed.parserUsed = 'fallback-regex'
         }
     }
   }

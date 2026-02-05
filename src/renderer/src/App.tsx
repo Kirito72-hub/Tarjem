@@ -911,6 +911,16 @@ const App: React.FC = () => {
           const metadata = await window.api.utils.parseFilename(episode.filename)
           console.log('Using metadata for download:', metadata)
 
+          // START: Log Parser Details
+          if (metadata.parserUsed) {
+            addStep(id, `Parsed using: ${metadata.parserUsed}`, 'INFO')
+          }
+          if (metadata.title) {
+            const epInfo = metadata.episode !== undefined ? `S${metadata.season}E${metadata.episode}` : 'Movie'
+            addStep(id, `Detected: ${metadata.title} (${epInfo})`, 'INFO')
+          }
+          // END: Log Parser Details
+
           for (let attempt = 0; attempt < candidates.length; attempt++) {
             const candidate = candidates[attempt]
             console.log(`\n[Attempt ${attempt + 1}/${candidates.length}] Trying: ${candidate.filename}`)
