@@ -3,6 +3,7 @@ import { Minus, X, Square } from 'lucide-react'
 
 export const TitleBar: React.FC = () => {
   const [isMaximized, setIsMaximized] = React.useState(false)
+  const [version, setVersion] = React.useState('')
 
   React.useEffect(() => {
     // Check if API is available (in case running without Electron or preload failure)
@@ -10,6 +11,11 @@ export const TitleBar: React.FC = () => {
       window.api.window.onWindowStateChange((state) => {
         setIsMaximized(state === 'maximized')
       })
+    }
+
+    // Fetch version
+    if (window.api && window.api.getVersion) {
+      window.api.getVersion().then(setVersion)
     }
   }, [])
 
@@ -21,7 +27,7 @@ export const TitleBar: React.FC = () => {
     <div className="h-8 bg-[#0F111A] flex items-center justify-between px-3 select-none draggable border-b border-white/5 w-full z-50">
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-purple-500/20 border border-purple-500/50"></div>
-        <span className="text-xs font-medium text-gray-400 tracking-wide">Tarjem v1.0.5-beta</span>
+        <span className="text-xs font-medium text-gray-400 tracking-wide">Tarjem {version && `v${version}`}</span>
       </div>
       <div className="flex items-center gap-3 no-drag">
         <button

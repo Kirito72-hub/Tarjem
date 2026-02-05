@@ -203,6 +203,8 @@ app.whenReady().then(async () => {
     }
   })
 
+  ipcMain.handle('app:getVersion', () => app.getVersion())
+
   // Subtitles Handlers
   ipcMain.handle(
     'subtitle:searchByHash',
