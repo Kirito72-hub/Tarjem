@@ -5,8 +5,10 @@ import { Dashboard } from './components/Dashboard'
 import { SettingsView } from './components/SettingsView'
 import { SubtitleSourcesModal } from './components/SubtitleSourcesModal'
 import { MergeOptionsModal } from './components/MergeOptionsModal'
+import { LogsView } from './components/LogsView'
 import { ToastContainer } from './components/Toast'
 import { useToastStore } from './store/toastStore'
+import { useLogStore } from './store/logStore'
 import {
   EpisodeFile,
   ProcessingStage,
@@ -16,7 +18,7 @@ import {
   MergeOptions,
   SubtitleResult
 } from '../../types'
-import { FileText } from 'lucide-react'
+
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('DASHBOARD')
@@ -781,15 +783,24 @@ const App: React.FC = () => {
       .map((c) => c.subtitle)
   }
 
+  const { createLog, addStep, updateStatus } = useLogStore()
+
   const simulateProcessing = async (id: string, tab: DashboardTab) => {
     const setTargetEpisodes = tab === 'FILE_MATCH' ? setSearchEpisodes : setMergeEpisodes
     const episodes = tab === 'FILE_MATCH' ? searchEpisodes : mergeEpisodes
     const episode = episodes.find((e) => e.id === id)
     if (!episode) return
 
+    // Create Log Entry
+    createLog(id, episode.filename)
+
+
+
     if (tab === 'FILE_MATCH') {
       // Real Hashing Logic
       console.log('Starting hash calculation for:', episode.path)
+      addStep(id, 'Calculating file hash...', 'INFO')
+
       setSearchEpisodes((prev) =>
         prev.map((e) =>
           e.id === id
@@ -803,18 +814,15 @@ const App: React.FC = () => {
         )
       )
 
-      // Setup progress listener (Global for now - implies single active hash or shared progress)
-      // ideally we'd pass ID to IPC to filter events
-      // setup progress listener
+      // Setup progress listener
       window.api.hashing.onProgress((progress) => {
         setSearchEpisodes((prev) => prev.map((e) => (e.id === id ? { ...e, progress } : e)))
       })
 
       try {
-        // Mock API for now doesn't filter by ID, so we might clash if parallel.
-        // But for single file test it works.
         const hash = await window.api.hashing.calculateHash(episode.path)
         console.log('Hash calculated successfully:', hash)
+        addStep(id, `Hash calculated: ${hash.substring(0, 8)}...`, 'SUCCESS')
 
         setSearchEpisodes((prev) =>
           prev.map((e) =>
@@ -831,12 +839,15 @@ const App: React.FC = () => {
 
         // Real Search
         console.log('Searching for subtitles with hash:', hash, 'Language:', subtitleLanguage)
+        addStep(id, `Searching by hash (${subtitleLanguage})`, 'INFO')
+
         let results = await window.api.subtitles.searchByHash(hash, subtitleLanguage)
         console.log('Hash Search results:', results ? results.length : 0)
 
         // Fallback to Text Search if Hash Search fails
         if (!results || results.length === 0) {
           console.log('Hash search yielded no results. Falling back to text search...')
+          addStep(id, 'Hash search failed, falling back to text search', 'WARNING')
 
           // Parse filename to extract metadata (including isAnime flag)
           const parsedMetadata = await window.api.utils.parseFilename(episode.filename)
@@ -844,6 +855,7 @@ const App: React.FC = () => {
 
           const cleanedQuery = parsedMetadata.title || cleanFilename(episode.filename)
           console.log('Fallback Query:', cleanedQuery)
+          addStep(id, `Searching by query: "${cleanedQuery}"`, 'INFO')
 
           setSearchEpisodes((prev) =>
             prev.map((e) =>
@@ -873,6 +885,9 @@ const App: React.FC = () => {
 
           if (candidates.length === 0) {
             console.log('No suitable subtitle found after filtering')
+            addStep(id, 'No suitable subtitle found after language/score filtering', 'WARNING')
+            updateStatus(id, 'WARNING')
+
             setSearchEpisodes((prev) =>
               prev.map((e) =>
                 e.id === id
@@ -916,6 +931,8 @@ const App: React.FC = () => {
               )
             )
 
+            addStep(id, `Attempt ${attempt + 1}: Downloading ${candidate.filename}`, 'INFO')
+
             try {
               // Determine download path
               if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
@@ -955,15 +972,20 @@ const App: React.FC = () => {
               downloadSucceeded = true
               successfulSubtitle = candidate
               console.log(`✅ Download succeeded: ${candidate.filename}`)
+              addStep(id, `Download succeeded: ${candidate.filename}`, 'SUCCESS')
               break // Exit retry loop
-            } catch (downloadError) {
+            } catch (downloadError: any) {
               console.error(`❌ Attempt ${attempt + 1} failed:`, downloadError)
+              addStep(id, `Download failed: ${downloadError.message}`, 'ERROR')
               // Continue to next candidate
             }
           }
 
           if (!downloadSucceeded || !successfulSubtitle) {
             console.log('All download attempts failed')
+            addStep(id, 'All download attempts failed', 'ERROR')
+            updateStatus(id, 'FAILED')
+
             setSearchEpisodes((prev) =>
               prev.map((e) =>
                 e.id === id
@@ -1059,9 +1081,14 @@ const App: React.FC = () => {
               )
             )
 
+            addStep(id, 'Process completed successfully', 'SUCCESS')
+            updateStatus(id, 'COMPLETED')
             addToast(`Successfully processed: ${episode.filename}`, 'success')
           } catch (downloadError: any) {
             console.error('Download or merge failed:', downloadError)
+            addStep(id, `Process failed: ${downloadError.message}`, 'ERROR')
+            updateStatus(id, 'FAILED')
+
             setSearchEpisodes((prev) =>
               prev.map((e) =>
                 e.id === id
@@ -1077,6 +1104,9 @@ const App: React.FC = () => {
           }
         } else {
           console.log('No subtitles found')
+          addStep(id, 'No subtitles found', 'WARNING')
+          updateStatus(id, 'WARNING')
+
           setSearchEpisodes((prev) =>
             prev.map((e) =>
               e.id === id
@@ -1091,6 +1121,8 @@ const App: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error in auto-match process:', err)
+        addStep(id, `Error: ${err.message}`, 'ERROR')
+        updateStatus(id, 'FAILED')
 
         // Check if it's an API key error
         const isApiKeyError = err?.message?.includes('API Key missing')
@@ -1260,12 +1292,7 @@ const App: React.FC = () => {
       case 'SETTINGS':
         return <SettingsView />
       case 'LOGS':
-        return (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-500 gap-4">
-            <FileText size={48} className="opacity-20" />
-            <p>Logs Panel Placeholder</p>
-          </div>
-        )
+        return <LogsView />
     }
   }
 
