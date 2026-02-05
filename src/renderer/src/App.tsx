@@ -291,10 +291,17 @@ const App: React.FC = () => {
           // Ignore parse error
         }
 
-        // Construct path: ExportPath / SeriesName / Filename
-        // Note: using string concatenation for renderer path construction (assuming Windows/Node friendly)
-        // Clean filename? content-disposition might give real name, but we have result.filename
-        destinationPath = `${exportPath}\\${seriesName}\\${result.filename}`
+        // Construct path: ExportPath / CleanSeriesName / Filename
+        // Clean Series Name (remove "Season X" if possible to group seasons together)
+        const cleanSeriesName = seriesName
+          .replace(/\bSeason\s+\d+\b/i, '')
+          .replace(/\bS\d+\b/i, '')
+          .replace(/\b\d{4}\b/g, '') // Remove Year (optional, but keeps folders cleaner)
+          .replace(/[._-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim() || 'Unsorted'
+
+        destinationPath = `${exportPath}\\${cleanSeriesName}\\${result.filename}`
       } else {
         // No export path. Leave empty to let Main process default to Downloads
         destinationPath = ''
@@ -367,7 +374,16 @@ const App: React.FC = () => {
         // But proper way: pass folder and filename to download?
         // Current API: download(url, destinationPath)
 
-        destinationPath = `${exportPath}\\${seriesName}\\${newFilename}`
+        // Clean Series Name for Folder Grouping
+        const cleanSeriesName = seriesName
+          .replace(/\bSeason\s+\d+\b/i, '')
+          .replace(/\bS\d+\b/i, '')
+          .replace(/\b\d{4}\b/g, '')
+          .replace(/[._-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim() || 'Unsorted'
+
+        destinationPath = `${exportPath}\\${cleanSeriesName}\\${newFilename}`
       } else {
         // Default: Next to video
         const videoPath = episode.path
@@ -904,7 +920,17 @@ const App: React.FC = () => {
               // Determine download path
               if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
                 const seriesName = metadata.title || 'Subtitles'
-                subtitlePath = `${exportPath}\\${seriesName}\\temp_${candidate.filename}`
+
+                // Clean Series Name for Folder Grouping
+                const cleanSeriesName = seriesName
+                  .replace(/\bSeason\s+\d+\b/i, '')
+                  .replace(/\bS\d+\b/i, '')
+                  .replace(/\b\d{4}\b/g, '')
+                  .replace(/[._-]/g, ' ')
+                  .replace(/\s+/g, ' ')
+                  .trim() || 'Subtitles'
+
+                subtitlePath = `${exportPath}\\${cleanSeriesName}\\temp_${candidate.filename}`
               } else {
                 subtitlePath = `C:\\Temp\\${candidate.filename}`
               }
@@ -975,9 +1001,19 @@ const App: React.FC = () => {
             if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
               const metadata = await window.api.utils.parseFilename(episode.filename)
               const seriesName = metadata.title || 'Merged'
+
+              // Clean Series Name for Folder Grouping
+              const cleanSeriesName = seriesName
+                .replace(/\bSeason\s+\d+\b/i, '')
+                .replace(/\bS\d+\b/i, '')
+                .replace(/\b\d{4}\b/g, '')
+                .replace(/[._-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim() || 'Merged'
+
               // Keep original filename and extension
               const originalFilename = episode.filename
-              outputPath = `${exportPath}\\${seriesName}\\${originalFilename}`
+              outputPath = `${exportPath}\\${cleanSeriesName}\\${originalFilename}`
             } else {
               // Fallback to same directory as source
               const lastSlash = episode.path.lastIndexOf('\\')
@@ -1114,9 +1150,19 @@ const App: React.FC = () => {
       if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
         const metadata = await window.api.utils.parseFilename(episode.filename)
         const seriesName = metadata.title || 'Merged'
+
+        // Clean Series Name for Folder Grouping
+        const cleanSeriesName = seriesName
+          .replace(/\bSeason\s+\d+\b/i, '')
+          .replace(/\bS\d+\b/i, '')
+          .replace(/\b\d{4}\b/g, '')
+          .replace(/[._-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim() || 'Merged'
+
         const mergedFilename =
           episode.filename.substring(0, episode.filename.lastIndexOf('.')) + '_merged.mp4'
-        outputPath = `${exportPath}\\${seriesName}\\${mergedFilename}`
+        outputPath = `${exportPath}\\${cleanSeriesName}\\${mergedFilename}`
 
         // Ensure we don't overwrite source if it happens to be same path (unlikely due to _merged but possible if messy)
       } else {
