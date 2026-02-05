@@ -915,6 +915,9 @@ const App: React.FC = () => {
           if (metadata.parserUsed) {
             addStep(id, `Parsed using: ${metadata.parserUsed}`, 'INFO')
           }
+          if (metadata.anilistId) {
+            addStep(id, `Identified as Anime via AniList: ${metadata.title} (ID: ${metadata.anilistId})`, 'SUCCESS')
+          }
           if (metadata.title) {
             const epInfo = metadata.episode !== undefined ? `S${metadata.season}E${metadata.episode}` : 'Movie'
             addStep(id, `Detected: ${metadata.title} (${epInfo})`, 'INFO')
