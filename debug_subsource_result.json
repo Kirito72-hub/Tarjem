@@ -1,35 +1,33 @@
 {
-  "subtitleId": 10030244,
-  "movieId": 136391,
+  "subtitleId": 10008695,
+  "movieId": 53511,
   "language": "arabic",
   "releaseInfo": [
-    "That.90s.Show.S02.1080p.NF.WEB-DL.DDP5.1.H.264-FLUX",
-    "That.90s.Show.S02.720p.NF.WEB-DL.DDP5.1.H.264-FLUX",
-    "That.90s.Show.S02.1080p.NF.WEB-DL.DDP5.1.H.264-XEBEC"
+    "JUJUTSU KAISEN.1080P"
   ],
-  "commentary": "ıllıllı⭐🌟 الأصلية 🅽🅴🆃🅵🅻🅸🆇 ترجمة 🌟⭐ıllıllı\n",
-  "files": 8,
-  "size": 99812,
+  "commentary": "ترجمة كرانشي رول الاصلية https://t.me/Arabic_Subtitle",
+  "files": 1,
+  "size": 38652,
   "hearingImpaired": false,
   "foreignParts": false,
   "framerate": "N/A",
-  "productionType": "retail",
-  "releaseType": "web",
-  "downloads": 27,
+  "productionType": "translated",
+  "releaseType": "hdtv",
+  "downloads": 472,
   "comments": 0,
   "rating": {
     "good": 0,
     "bad": 0,
     "total": 0
   },
-  "preview": "﻿1\n00:00:08,216 --> 00:00:09,718\n‫\"(بوينت بلايس)، (ويسكونسن)\"‬\n\n\n2\n00:00:09,801 --> 00:00:11,136\n‫\"8 يونيو، 1996\"‬\n\n\n3\n00:00:11,219 --> 00:00:12,721\n‫\"11:47 صباحًا\"‬\n\n\n4\n00:00:12,804 --> 00:00:14,097\n‫\"الموقع\"‬\n\n\n5\n00:00:14,180 --> 00:00:15,932\n‫\"مطبخ (كيتي فورمان)\"‬\n\n\n6\n00:00:17,976 --> 00:00:18,893\n‫\"(ماكارينا)‬\n\n\n7\n",
-  "uploaderId": 1284514,
+  "preview": "[Script Info]\nTitle: العربية\nOriginal Script: cr_ar  [http://www.crunchyroll.com/user/cr_ar]\nOriginal Translation: \nOriginal Editing: \nOriginal Timing: \nSynch Point: \nScript Updated By: \nUpdate Details: \nScriptType: v4.00+\nCollisions: Normal\nPlayResX: 848\nPlayResY: 360\nTimer: 0.0000\nWrapStyle: 0\n\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,Strikeout,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Default,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,1,0,2,0010,0010,0020,1\nStyle: Main,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,1,0,2,0010,0010,0018,1\nStyle: Italics,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,-1,0,0,100,100,0,0,1,1,0,2,0010,0010,0018,1\nStyle: Flashback,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00500000,&H00500000,-1,0,0,0,100,100,0,0,1,1,0,2,0010,0010,0018,1\nStyle: Flashback_Italics,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00500000,&H00500000,-1,-1,0,0,100,100,0,0,1,1,0,2,0010,0010,0018,1\nStyle: Narration,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00000050,&H00000050,-1,-1,0,0,100,100,0,0,1,1,0,2,0010,0010,0018,1\nStyle: Show_Title,Adobe Arabic,67,&H00000000,&H000000FF,&H008CC6C2,&H00000000,-1,0,0,0,100,150,0,0,1,2,0,8,0010,0010,0018,1\n",
+  "uploaderId": 76518,
   "contributors": [
     {
-      "id": 1284514,
-      "displayname": "iAmeer."
+      "id": 76518,
+      "displayname": "ABDULLAH007"
     }
   ],
-  "link": "/subtitle/that-90s-show-season-2/arabic/10030244",
-  "createdAt": "2024-08-22T15:13:49.379Z"
+  "link": "/subtitle/jujutsu-kaisen-0-2021/arabic/10008695",
+  "createdAt": "2024-06-07T02:46:28.857Z"
 }

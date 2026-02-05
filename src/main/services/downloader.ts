@@ -14,7 +14,8 @@ export class Downloader {
       })
 
       await streamPipeline(response.data, fs.createWriteStream(destinationPath))
-      return true
+      await streamPipeline(response.data, fs.createWriteStream(destinationPath))
+      return { success: true, headers: response.headers }
     } catch (error) {
       console.error('Download error:', error)
       throw error

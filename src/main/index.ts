@@ -436,7 +436,7 @@ app.whenReady().then(async () => {
         if (!downloadUrl) throw new Error('Could not resolve download URL')
 
         // Download to temp file
-        await downloader.downloadFile(downloadUrl, tempPath)
+        const downloadResult = await downloader.downloadFile(downloadUrl, tempPath)
 
         const cleanupTemp = () => {
           try {
@@ -456,8 +456,36 @@ app.whenReady().then(async () => {
              
              // If destination has no extension, try to detect one
              if (!destExt || destExt === '.') {
-                 const urlExt = extname(downloadUrl).toLowerCase() || '.zip' // Default to zip if unknown for now
-                 finalDestination = destination + urlExt
+                 let detectedExt = ''
+                 
+                 // 1. Try Content-Disposition
+                 if (downloadResult && typeof downloadResult === 'object' && downloadResult.headers) {
+                     const disposition = downloadResult.headers['content-disposition']
+                     if (disposition) {
+                         const filenameMatch = disposition.match(/filename="?([^"]+)"?/)
+                         if (filenameMatch && filenameMatch[1]) {
+                             detectedExt = extname(filenameMatch[1]).toLowerCase()
+                             console.log('[DEBUG] Detected extension from Content-Disposition:', detectedExt)
+                         }
+                     }
+                     
+                     // 2. Try Content-Type if still unknown
+                     if (!detectedExt) {
+                         const contentType = downloadResult.headers['content-type']
+                         if (contentType) {
+                             if (contentType.includes('application/zip') || contentType.includes('application/x-zip-compressed')) detectedExt = '.zip'
+                             else if (contentType.includes('text/plain') || contentType.includes('application/x-subrip')) detectedExt = '.srt' // Guessing
+                             else if (contentType.includes('application/x-ass')) detectedExt = '.ass'
+                         }
+                     }
+                 }
+
+                 // 3. Fallback to URL extension or default .zip
+                 if (!detectedExt) {
+                     detectedExt = extname(downloadUrl).toLowerCase() || '.zip'
+                 }
+
+                 finalDestination = destination + detectedExt
                  console.log(`[DEBUG] Added extension to destination: ${destination} -> ${finalDestination}`)
              }
 
