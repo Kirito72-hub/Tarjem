@@ -310,7 +310,8 @@ const App: React.FC = () => {
       }
 
       const downloaded = await window.api.subtitles.download(result.url, destinationPath, {
-        filename: result.filename
+        filename: result.filename,
+        skipExtraction: true
       })
 
       if (downloaded) {
