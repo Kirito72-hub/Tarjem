@@ -19,7 +19,6 @@
 - **🆕 Guessit-JS Parser:** Replaced regex-based filename parser with `guessit-js` (WASM) + `anime-name-tool` pipeline for significantly better accuracy.
 - **Sequential Processing:** Auto Match and Merger now process files one by one to prevent rate limits.
 - **Refactor:** Implemented robust "Parser Pipeline" (Base -> Enrichment -> Pattern Check) to handle all file types generically without hardcoded hacks.
-- **Improved:** Enhanced Anime search by aggregating results from both Original (Romaji) and English titles (e.g. Kusuriya + Apothecary Diaries) to find the best match.
 - **Fix:** Improved JJK S2 episode matching (Absolute vs Relative numbering).
 - **Fix:** Improved Anime title search (e.g. Kusuriya) by verifying titles against `anime-name-tool`.
 

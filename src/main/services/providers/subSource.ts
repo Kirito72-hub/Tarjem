@@ -465,12 +465,23 @@ export class SubSourceService implements SubtitleProvider {
         } catch (extractError: unknown) {
           const errMsg = extractError instanceof Error ? extractError.message : String(extractError)
           console.error(`[SubSource] Failed to extract zip:`, errMsg)
+          
+          // Cleanup the zip file before re-throwing or returning
+          try {
+             if (fs.existsSync(finalDestination)) {
+                fs.unlinkSync(finalDestination)
+                // console.log(`[SubSource] Cleanup on error: Deleted ${finalDestination}`)
+             }
+          } catch (e) {}
+
           // If it's an episode mismatch error, re-throw so caller can retry
           if (errMsg.includes('found in ZIP archive')) {
             throw extractError
           }
-          // Keep the zip file if extraction fails for other reasons
-          return finalDestination
+          // If other error, we deleted the zip, so we can't return generic path.
+          // Fallback? Or throw?
+          // If we deleted it, we must throw.
+          throw extractError
         }
       }
 

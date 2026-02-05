@@ -258,7 +258,6 @@ app.whenReady().then(async () => {
                     malId: result.malId,
                     anilistId: result.anilistId,
                     type: 'tv', // Anime is usually treated as TV in our flow for episodes
-                    englishTitle: result.title.english || undefined,
                     title:
                       result.title.romaji ||
                       result.title.english ||
@@ -357,28 +356,6 @@ app.whenReady().then(async () => {
             enabledSources
           )
           results.push(...providerResults)
-
-          // Enhanced Anime Search:
-          // If it's an Anime and we have an English title, search for that too.
-          // This improves results for providers that rely on text matching (like SubDL).
-          if (enrichedMetadata.isAnime && enrichedMetadata.englishTitle && enrichedMetadata.englishTitle !== query) {
-            console.log(`[Search] Also searching for English Title: "${enrichedMetadata.englishTitle}"...`)
-            const fallbackResults = await providerRegistry.searchAll(
-              enrichedMetadata.englishTitle,
-              enrichedMetadata as any,
-              language,
-              enabledSources
-            )
-            
-            // Deduplicate results based on URL
-            const existingUrls = new Set(results.map(r => r.url))
-            for (const res of fallbackResults) {
-              if (!existingUrls.has(res.url)) {
-                results.push(res)
-                existingUrls.add(res.url)
-              }
-            }
-          }
         }
 
         console.log(`Total results from all sources: ${results.length}`)
@@ -542,12 +519,12 @@ app.whenReady().then(async () => {
             }
 
             // DEBUG: List all .ass entries with their parsed episode numbers
-            const assEntries = zipEntries.filter((e) => e.entryName.toLowerCase().endsWith('.ass'))
-            console.log(`[DEBUG] ZIP contains ${assEntries.length} .ass files:`)
-            assEntries.slice(0, 10).forEach((e) => {
-              const parsed = parseMediaFilename(e.entryName)
-              console.log(`  - ${e.entryName} -> Episode: ${parsed.episode}`)
-            })
+            // const assEntries = zipEntries.filter((e) => e.entryName.toLowerCase().endsWith('.ass'))
+            // console.log(`[DEBUG] ZIP contains ${assEntries.length} .ass files:`)
+            // assEntries.slice(0, 10).forEach((e) => {
+            //   const parsed = parseMediaFilename(e.entryName)
+            //   console.log(`  - ${e.entryName} -> Episode: ${parsed.episode}`)
+            // })
 
             // Priority 1: Try to find files matching BOTH season AND episode
             subtitleEntry = zipEntries.find(
