@@ -1069,9 +1069,8 @@ const App: React.FC = () => {
 
             // Clean up temporary subtitle file after successful merge
             try {
-              // await window.api.utils.deleteFile(subtitlePath)
-              // console.log('Cleaned up temporary subtitle file:', subtitlePath)
-              console.log('Kept temporary subtitle file for debugging:', subtitlePath)
+              await window.api.utils.deleteFile(subtitlePath)
+              console.log('Cleaned up temporary subtitle file:', subtitlePath)
             } catch (cleanupError) {
               console.warn('Failed to cleanup subtitle file:', cleanupError)
               // Don't fail the whole process if cleanup fails
