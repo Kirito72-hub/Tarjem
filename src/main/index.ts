@@ -461,6 +461,12 @@ app.whenReady().then(async () => {
                  console.log(`[DEBUG] Added extension to destination: ${destination} -> ${finalDestination}`)
              }
 
+             // Ensure destination directory exists
+             const destDir = dirname(finalDestination)
+             if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true })
+             }
+
              fs.copyFileSync(tempPath, finalDestination)
              cleanupTemp()
              return {
