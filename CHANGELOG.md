@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.0-beta (2026-02-05)
+
+### ✨ Manual Downloads Engine
+- **Robust Extension Handling:** Auto-detects extensions (`.ass`, `.srt`, `.zip`) from server headers (`Content-Disposition`) when not present in URL.
+- **Auto-Directory Creation:** Automatically creates destination folders if missing, fixing ENOENT errors.
+- **Skip Extraction:** Option to preserve original archives (ZIP/RAR) instead of auto-extracting.
+
+### 🔍 Improvements
+- **AniList Logging:** Explicit confirmation when Anime ID is found via AniList.
+
+
 ## v1.0.5-beta (2026-02-04)
 
 ### 🎯 Improved Episode Matching
