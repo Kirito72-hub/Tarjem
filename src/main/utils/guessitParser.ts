@@ -116,6 +116,13 @@ function normalizeTitle(title: string): string {
  * @param forceType - Optional: force parsing as 'movie' or 'episode'
  * @returns ParsedMedia object with extracted metadata
  */
+/**
+ * Parse a media filename using guessit-js
+ *
+ * @param filename - The filename to parse (with or without extension)
+ * @param forceType - Optional: force parsing as 'movie' or 'episode'
+ * @returns ParsedMedia object with extracted metadata
+ */
 export function parseMediaFilename(filename: string, forceType?: 'movie' | 'episode'): ParsedMedia {
   // Use guessit to parse
   const options: { type?: 'movie' | 'episode' } = {}
@@ -204,14 +211,15 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
   // Detect anime
   parsed.isAnime = detectAnime(filename, parsed.releaseGroup)
 
-    // Anime Specific Parsing (anime-name-tool)
-    // Run if it's anime, regardless of whether guessit found something.
-    // This repairs cases where guessit picks absolute numbering (e.g. 27) instead of Season/Episode (S2 - 03).
-    if (parsed.isAnime) {
-      try {
+  // --- Refinement Steps ---
+
+  // 1. Anime Specific Refinement
+  if (parsed.isAnime) {
+    try {
         const animeParsed = parseFileName(filename)
         
-        // 1. Episode Priority
+        // Enrich Episode (if missing or potentially absolute)
+        // We generally trust anime-name-tool for episode numbering logic in anime
         if (animeParsed.episode !== null) {
           let epNum: number | undefined
           if (typeof animeParsed.episode === 'number') {
@@ -222,32 +230,54 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
              epNum = animeParsed.episode[0]
           }
 
+          // Apply if valid
           if (epNum !== undefined && !isNaN(epNum)) {
-             parsed.episode = epNum
+             // If guessit failed to find episode, or we suspect absolute vs relative mismatch,
+             // we can trust this tool. However, we will also accept Pattern Override below.
+             if (parsed.episode === undefined) {
+                 parsed.episode = epNum;
+             }
           }
         }
-
-        // 2. Season Priority (if available in runtime object)
+        
+        // Enrich Season
         const animeSeason = (animeParsed as any).season
         if (typeof animeSeason === 'number') {
-           parsed.season = animeSeason
+           if (parsed.season === undefined) parsed.season = animeSeason
         }
-      } catch (e) {
-        // failed
-      }
-    }
 
-    // Manual Regex Fallbacks (Last Resort)
+        // Clean Title Strategy
+        // If guessit returns a long messy title, try to use the cleaner one from anime tool
+        if (animeParsed.title && typeof animeParsed.title === 'string') {
+            const cleanAnimeTitle = animeParsed.title.trim();
+            // Using a heuristic: shorter titles are usually cleaner (stripped of tags)
+            if (cleanAnimeTitle.length < parsed.title.length && cleanAnimeTitle.length > 0) {
+                 parsed.title = cleanAnimeTitle;
+                 parsed.cleanTitle = normalizeTitle(cleanAnimeTitle);
+            }
+        }
+    } catch (e) {
+        // parsing failed, ignore
+    }
+  }
+
+  // 2. Generic Pattern Override (High Priority)
+  // Catch explicit "S<Season> - <Episode>" patterns which generic parsers often miss or confuse with absolute numbering
+  // This applies to ALL content, ensuring we respect explicit formatting.
+  const explicitSeasonMatch = filename.match(/S(\d+)\s*-\s*(\d+)/i);
+  if (explicitSeasonMatch) {
+        const s = parseInt(explicitSeasonMatch[1], 10)
+        const e = parseInt(explicitSeasonMatch[2], 10)
+        // Overwrite season/episode as this pattern is definitive (e.g. S2 - 03)
+        parsed.season = s
+        parsed.episode = e
+  }
+
+  // 3. Fallback Regex patterns (Low Priority)
+  // Only run if we still don't have Season/Episode
     if (parsed.season === undefined || parsed.episode === undefined) {
-        // Pattern: [S2 - 01] or S2 - 01
-        const seasonEpMatch = filename.match(/S(\d+)\s*-\s*(\d+)/i)
-
-    if (seasonEpMatch) {
-       if (parsed.season === undefined) parsed.season = parseInt(seasonEpMatch[1], 10)
-       if (parsed.episode === undefined) parsed.episode = parseInt(seasonEpMatch[2], 10)
-    }
-
-    // Pattern: S02 E03
+    
+    // Pattern: S02 E03 (Standard)
     if (parsed.season === undefined || parsed.episode === undefined) {
       const s00e00 = filename.match(/S(\d+)\s*E(\d+)/i)
       if (s00e00) {
@@ -264,8 +294,6 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
             if (parsed.episode === undefined) parsed.episode = parseInt(sxee[2], 10)
         }
     }
-
-
   }
 
   return parsed

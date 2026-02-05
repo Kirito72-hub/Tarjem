@@ -16,13 +16,11 @@
 
 ### Technical Changes
 
-- **🆕 Guessit-JS Parser:** Replaced regex-based filename parser with `guessit-js` (WASM) + `anime-name-tool` for significantly better accuracy in detecting season/episode numbers (handles S03, Season 3, 3rd Season, etc.)
-- **Sequential Processing:** Auto Match and Merger now process files one by one to prevent rate limits and UI overwhelming
-- SubSource provider now throws error when ZIP doesn't contain matching episode
-- Main download handler re-throws episode mismatch errors for retry
-- Added `getSortedCandidates()` helper for retry logic (tries up to 5 candidates)
-- Improved catch block to detect "found in ZIP archive" errors
-- **Fix:** Resolved absolute vs season numbering conflict (e.g. JJK S2 Episode 3 detection) by prioritizing `anime-name-tool` for anime content
+- **🆕 Guessit-JS Parser:** Replaced regex-based filename parser with `guessit-js` (WASM) + `anime-name-tool` pipeline for significantly better accuracy.
+- **Sequential Processing:** Auto Match and Merger now process files one by one to prevent rate limits.
+- **Refactor:** Implemented robust "Parser Pipeline" (Base -> Enrichment -> Pattern Check) to handle all file types generically without hardcoded hacks.
+- **Fix:** Improved JJK S2 episode matching (Absolute vs Relative numbering).
+- **Fix:** Improved Anime title search (e.g. Kusuriya) by verifying titles against `anime-name-tool`.
 
 ---
 
