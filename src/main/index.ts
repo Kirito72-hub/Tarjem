@@ -7,7 +7,7 @@ console.log('Process Type:', process.type)
 console.log('--- DEBUG END ---')
 
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import { join, dirname, extname } from 'path'
+import { join, dirname, extname, basename } from 'path'
 import fs from 'fs'
 import os from 'os'
 import AdmZip from 'adm-zip'
@@ -422,7 +422,7 @@ app.whenReady().then(async () => {
             // Return result directly as it matches DownloadResult shape (mostly)
             return {
               path: result.path,
-              originalFilename: options?.filename || path.basename(result.path),
+              originalFilename: options?.filename || basename(result.path),
               wasZip: result.wasZip,
               extractedFilename: result.extractedFilename
             }
@@ -450,10 +450,21 @@ app.whenReady().then(async () => {
           // If skip extraction is requested, just move generic temp file to destination
           if (options?.skipExtraction) {
              console.log('Skipping extraction as requested')
-             fs.copyFileSync(tempPath, destination)
+             
+             let finalDestination = destination
+             const destExt = extname(destination).toLowerCase()
+             
+             // If destination has no extension, try to detect one
+             if (!destExt || destExt === '.') {
+                 const urlExt = extname(downloadUrl).toLowerCase() || '.zip' // Default to zip if unknown for now
+                 finalDestination = destination + urlExt
+                 console.log(`[DEBUG] Added extension to destination: ${destination} -> ${finalDestination}`)
+             }
+
+             fs.copyFileSync(tempPath, finalDestination)
              cleanupTemp()
              return {
-                path: destination,
+                path: finalDestination,
                 wasZip: false // Treated as single file (even if zip)
              }
           }
@@ -689,7 +700,7 @@ app.whenReady().then(async () => {
 
         return {
           path: destination,
-          originalFilename: options?.filename || path.basename(destination),
+          originalFilename: options?.filename || basename(destination),
           wasZip: false
         }
       } catch (error) {
