@@ -386,6 +386,7 @@ app.whenReady().then(async () => {
         startSeason?: number
         startEpisode?: number
         videoFilename?: string
+        skipExtraction?: boolean
       }
     ) => {
       console.log('Downloading subtitle:', url, 'to', destination)
@@ -415,7 +416,8 @@ app.whenReady().then(async () => {
           if (subSourceService) {
             const result = await subSourceService.downloadSubtitle(id, destination, {
               startSeason: options?.startSeason,
-              startEpisode: options?.startEpisode
+              startEpisode: options?.startEpisode,
+              skipExtraction: options?.skipExtraction
             })
             // Return result directly as it matches DownloadResult shape (mostly)
             return {
@@ -445,6 +447,17 @@ app.whenReady().then(async () => {
         }
 
         try {
+          // If skip extraction is requested, just move generic temp file to destination
+          if (options?.skipExtraction) {
+             console.log('Skipping extraction as requested')
+             fs.copyFileSync(tempPath, destination)
+             cleanupTemp()
+             return {
+                path: destination,
+                wasZip: false // Treated as single file (even if zip)
+             }
+          }
+
           // Try to open as ZIP
           const zip = new AdmZip(tempPath)
           const zipEntries = zip.getEntries()

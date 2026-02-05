@@ -271,6 +271,7 @@ export class SubSourceService implements SubtitleProvider {
     options?: {
       startSeason?: number
       startEpisode?: number
+      skipExtraction?: boolean
     }
   ): Promise<{ path: string; wasZip: boolean; extractedFilename?: string }> {
     try {
@@ -344,6 +345,14 @@ export class SubSourceService implements SubtitleProvider {
 
       // If it's a zip file, extract the subtitle
       if (actualExtension === 'zip') {
+        if (options?.skipExtraction) {
+            console.log('[SubSource] Extraction skipped by request')
+            return {
+                path: finalDestination,
+                wasZip: false
+            }
+        }
+
         try {
           const zip = new AdmZip(finalDestination)
           const zipEntries = zip.getEntries()

@@ -402,7 +402,8 @@ const App: React.FC = () => {
         filename: result.filename,
         videoFilename: episode.filename, // Pass video filename for robust parsing in main process
         startSeason: videoInfo.season,
-        startEpisode: videoInfo.episode
+        startEpisode: videoInfo.episode,
+        skipExtraction: true
       }
 
       console.log('Downloading with options:', downloadOptions)
