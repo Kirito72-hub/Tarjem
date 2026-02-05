@@ -958,14 +958,24 @@ const App: React.FC = () => {
                 startEpisode: metadata.episode
               })
 
-              if (!downloaded) {
-                throw new Error('Download returned empty')
+              if (!downloaded || !downloaded.path) {
+                throw new Error('Download returned empty result')
+              }
+
+              // Check for ZIP extraction logs
+              if (downloaded.wasZip) {
+                const zipName = downloaded.originalFilename || 'archive.zip'
+                addStep(id, `Downloaded ZIP archive: ${zipName}`, 'INFO')
+
+                if (downloaded.extractedFilename) {
+                  addStep(id, `Extracted: ${downloaded.extractedFilename}`, 'SUCCESS')
+                }
               }
 
               // Update subtitle path if the download returned a different path
-              if (typeof downloaded === 'string' && downloaded !== subtitlePath) {
-                console.log(`[App] Subtitle path updated: ${subtitlePath} -> ${downloaded}`)
-                subtitlePath = downloaded
+              if (downloaded.path !== subtitlePath) {
+                console.log(`[App] Subtitle path updated: ${subtitlePath} -> ${downloaded.path}`)
+                subtitlePath = downloaded.path
               }
 
               // Success!

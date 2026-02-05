@@ -413,12 +413,17 @@ app.whenReady().then(async () => {
         } else if (url.startsWith('subsource:')) {
           const id = url.split(':')[1]
           if (subSourceService) {
-            const actualPath = await subSourceService.downloadSubtitle(id, destination, {
+            const result = await subSourceService.downloadSubtitle(id, destination, {
               startSeason: options?.startSeason,
               startEpisode: options?.startEpisode
             })
-            // If the service returns a path (which it should now), use it. Fallback to destination.
-            return actualPath || destination
+            // Return result directly as it matches DownloadResult shape (mostly)
+            return {
+              path: result.path,
+              originalFilename: options?.filename || path.basename(result.path),
+              wasZip: result.wasZip,
+              extractedFilename: result.extractedFilename
+            }
           } else {
             throw new Error('SubSource service not initialized')
           }
@@ -628,7 +633,12 @@ app.whenReady().then(async () => {
                }
             } catch (e) {}
 
-            return destination
+            return {
+              path: destination,
+              originalFilename: options?.filename || 'unknown.zip',
+              wasZip: true,
+              extractedFilename: subtitleEntry.entryName
+            }
           }
           
           // Should be unreachable due to check above, but for safety:
@@ -664,7 +674,11 @@ app.whenReady().then(async () => {
         fs.copyFileSync(tempPath, destination)
         cleanupTemp()
 
-        return destination
+        return {
+          path: destination,
+          originalFilename: options?.filename || path.basename(destination),
+          wasZip: false
+        }
       } catch (error) {
         console.error('Download Handler Error:', error)
         try {

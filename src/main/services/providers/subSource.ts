@@ -272,7 +272,7 @@ export class SubSourceService implements SubtitleProvider {
       startSeason?: number
       startEpisode?: number
     }
-  ): Promise<string> {
+  ): Promise<{ path: string; wasZip: boolean; extractedFilename?: string }> {
     try {
       if (!this.apiKey) throw new Error('No API Key provided')
 
@@ -457,10 +457,18 @@ export class SubSourceService implements SubtitleProvider {
               console.warn(`[SubSource] Failed to delete temp zip:`, e)
             }
 
-            return extractedPath
+            return {
+              path: extractedPath,
+              wasZip: true,
+              extractedFilename: subtitleEntry.name
+            }
           } else {
             console.warn(`[SubSource] No subtitle file found in zip archive`)
-            return finalDestination
+            return {
+              path: finalDestination,
+              wasZip: true,
+              extractedFilename: undefined
+            }
           }
         } catch (extractError: unknown) {
           const errMsg = extractError instanceof Error ? extractError.message : String(extractError)
@@ -485,7 +493,10 @@ export class SubSourceService implements SubtitleProvider {
         }
       }
 
-      return finalDestination
+      return {
+        path: finalDestination,
+        wasZip: false
+      }
     } catch (error: any) {
       console.error('[SubSource] Download failed:', error.message)
       if (error.response) {

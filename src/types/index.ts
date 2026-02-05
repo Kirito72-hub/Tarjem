@@ -38,6 +38,13 @@ export interface SubtitleResult {
   caption?: string
 }
 
+export interface DownloadResult {
+  path: string
+  originalFilename: string
+  wasZip: boolean
+  extractedFilename?: string
+}
+
 export interface SubtitleSource {
   id: string
   name: string
@@ -79,7 +86,7 @@ export interface ElectronAPI {
     ) => Promise<any>
     searchByHash: (hash: string, language?: string) => Promise<any>
     searchByQuery: (query: string, language?: string) => Promise<any>
-    download: (downloadData: any, destination: string, options?: any) => Promise<string>
+    download: (downloadData: any, destination: string, options?: any) => Promise<DownloadResult>
   }
   utils: {
     parseFilename: (filename: string) => Promise<any>
