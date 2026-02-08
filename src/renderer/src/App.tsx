@@ -19,6 +19,14 @@ import {
   SubtitleResult
 } from '../../types'
 
+/**
+ * Sanitize a filename by removing Windows-illegal characters
+ * Illegal: \ / : * ? " < > |
+ */
+function sanitizeFilename(filename: string): string {
+  return filename.replace(/[\\/:*?"<>|]/g, '_').trim()
+}
+
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('DASHBOARD')
@@ -962,9 +970,9 @@ const App: React.FC = () => {
                   .replace(/\s+/g, ' ')
                   .trim() || 'Subtitles'
 
-                subtitlePath = `${exportPath}\\${cleanSeriesName}\\temp_${candidate.filename}`
+                subtitlePath = `${exportPath}\\${cleanSeriesName}\\temp_${sanitizeFilename(candidate.filename)}`
               } else {
-                subtitlePath = `C:\\Temp\\${candidate.filename}`
+                subtitlePath = `C:\\Temp\\${sanitizeFilename(candidate.filename)}`
               }
 
               console.log('Downloading subtitle to:', subtitlePath)

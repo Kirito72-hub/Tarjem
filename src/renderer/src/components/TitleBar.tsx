@@ -7,20 +7,28 @@ export const TitleBar: React.FC = () => {
 
   React.useEffect(() => {
     // Check if API is available (in case running without Electron or preload failure)
+    // Check if API is available (in case running without Electron or preload failure)
+    // @ts-ignore - window.api injected via preload
     if (window.api && window.api.window && window.api.window.onWindowStateChange) {
+      // @ts-ignore - window.api injected via preload
       window.api.window.onWindowStateChange((state) => {
         setIsMaximized(state === 'maximized')
       })
     }
 
     // Fetch version
+    // @ts-ignore - window.api injected via preload
     if (window.api && window.api.getVersion) {
+      // @ts-ignore - window.api injected via preload
       window.api.getVersion().then(setVersion)
     }
   }, [])
 
+  // @ts-ignore - window.api injected via preload
   const handleMinimize = () => window.api?.window?.minimize()
+  // @ts-ignore - window.api injected via preload
   const handleMaximize = () => window.api?.window?.maximize()
+  // @ts-ignore - window.api injected via preload
   const handleClose = () => window.api?.window?.close()
 
   return (

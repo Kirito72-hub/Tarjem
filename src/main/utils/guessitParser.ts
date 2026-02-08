@@ -162,7 +162,6 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
   const parsed: ParsedMedia = {
     title,
     cleanTitle: normalizeTitle(title || ''),
-    cleanTitle: normalizeTitle(title || ''),
     originalFilename: filename,
     type,
     parserUsed: 'guessit' // Default
@@ -302,6 +301,23 @@ export function parseMediaFilename(filename: string, forceType?: 'movie' | 'epis
             if (parsed.episode === undefined) parsed.episode = parseInt(sxee[2], 10)
             parsed.parserUsed = 'fallback-regex'
         }
+    }
+  }
+
+  // 4. Batch/Range Detection (Override)
+  // Check for patterns like [01-12], [01 - 12] or (01 - 12) which indicate a batch
+  // If guessit picked one of these numbers as the episode, we invalidate it so it's treated as a batch/season pack
+  const rangeMatch = filename.match(/[\[\(]\s*(\d{1,4})\s*-\s*(\d{1,4})\s*[\]\)]/)
+  if (rangeMatch) {
+    const start = parseInt(rangeMatch[1], 10)
+    const end = parseInt(rangeMatch[2], 10)
+
+    if (!isNaN(start) && !isNaN(end) && end > start) {
+       // If current detected episode matches start or end of the range, it's likely a false positive
+       if (parsed.episode === start || parsed.episode === end) {
+          parsed.episode = undefined
+          // Ensure we don't accidentally wipe season if it was detected correctly
+       }
     }
   }
 

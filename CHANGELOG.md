@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.0.1-beta (2026-02-08)
+
+### 🐛 Bug Fixes
+- **Batch Subtitle Matching:** Fixed `[1 - 12]` style batch packs being incorrectly identified as Episode 1 only, preventing matches for episodes 2-12.
+- **Temp File Cleanup:** Fixed orphan 0-byte temp files being created when subtitle filenames contain illegal Windows characters (e.g., colons).
+
+### 🔧 Technical
+- Added Range Detection in parser to correctly identify batch/season pack subtitles.
+- Added `sanitizeFilename()` helper to strip Windows-illegal characters from temp paths.
+
+---
+
 ## v2.0.0-beta (2026-02-05)
 
 ### ✨ Manual Downloads Engine
