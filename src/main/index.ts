@@ -1,18 +1,10 @@
-// DEBUG: Check execution context
-console.log('--- DEBUG START ---')
-console.log('ENV CHECK - ELECTRON_RUN_AS_NODE:', process.env.ELECTRON_RUN_AS_NODE)
-console.log('EXECUTABLE PATH:', process.execPath)
-console.log('Running in:', process.versions.electron ? 'Electron' : 'Node')
-console.log('Process Type:', process.type)
-console.log('--- DEBUG END ---')
-
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, dirname, extname, basename } from 'path'
 import fs from 'fs'
 import os from 'os'
 import AdmZip from 'adm-zip'
 
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/favicon.ico?asset'
 import { OpenSubtitlesService, SubDLService } from './services/subtitleApi'
 import { HashCalculator } from './services/hashCalculator'
 import { Downloader } from './services/downloader'
@@ -58,7 +50,7 @@ function createWindow(): void {
     titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     backgroundColor: '#0a0a0a',
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -261,8 +253,8 @@ app.whenReady().then(async () => {
                     anilistId: result.anilistId,
                     type: 'tv', // Anime is usually treated as TV in our flow for episodes
                     title:
-                      result.title.romaji ||
                       result.title.english ||
+                      result.title.romaji ||
                       result.title.native ||
                       metadata.title,
                     year: result.year ?? undefined,
@@ -330,7 +322,7 @@ app.whenReady().then(async () => {
         // Handle legacy cache: Title might be an object
         if (typeof enrichedMetadata.title === 'object' && enrichedMetadata.title !== null) {
           const t: any = enrichedMetadata.title
-          enrichedMetadata.title = t.romaji || t.english || t.native || metadata.title
+          enrichedMetadata.title = t.english || t.romaji || t.native || metadata.title
         }
 
 
@@ -467,7 +459,7 @@ app.whenReady().then(async () => {
                          const filenameMatch = disposition.match(/filename="?([^"]+)"?/)
                          if (filenameMatch && filenameMatch[1]) {
                              detectedExt = extname(filenameMatch[1]).toLowerCase()
-                             console.log('[DEBUG] Detected extension from Content-Disposition:', detectedExt)
+
                          }
                      }
                      
@@ -488,7 +480,7 @@ app.whenReady().then(async () => {
                  }
 
                  finalDestination = destination + detectedExt
-                 console.log(`[DEBUG] Added extension to destination: ${destination} -> ${finalDestination}`)
+
              }
 
              // Ensure destination directory exists
@@ -547,19 +539,19 @@ app.whenReady().then(async () => {
             let requestedEpisode = options?.startEpisode
 
             if (requestedEpisode === undefined && options?.videoFilename) {
-               console.log('[DEBUG] startEpisode missing, attempting to parse videoFilename:', options.videoFilename)
+
                const videoParsed = parseMediaFilename(options.videoFilename)
                if (videoParsed.episode !== undefined) {
                  requestedEpisode = videoParsed.episode
-                 console.log('[DEBUG] Extracted episode from videoFilename:', requestedEpisode)
+
                }
                if (videoParsed.season !== undefined) {
                  requestedSeason = videoParsed.season
-                 console.log('[DEBUG] Extracted season from videoFilename:', requestedSeason)
+
                }
             }
 
-            console.log(`[DEBUG] requestedSeason=${requestedSeason}, requestedEpisode=${requestedEpisode}`)
+
 
             const isSeasonCompatible = (filename: string): boolean => {
               const parsed = parseMediaFilename(filename)
@@ -710,20 +702,27 @@ app.whenReady().then(async () => {
           
           // CRITICAL: If we successfully opened as ZIP (entries > 0) but failed to find sub,
           // OR if extraction failed, we MUST FAIL. Do not fallback to copying the ZIP.
-          // The fallback below is ONLY for when AdmZip fails to parse (i.e. not a zip).
+          // The fallback below is ONLY for when the file is genuinely NOT a zip (e.g. plain .srt).
           
-          // If the error message indicates we looked inside and failed, re-throw.
+          // Re-throw if the error indicates a corrupt/invalid ZIP or a missing subtitle inside
           if (
             errMsg.includes('No valid subtitle') ||
             errMsg.includes('empty or invalid') ||
             errMsg.includes('found in ZIP archive') ||
-            errMsg.includes('Verification failed')
+            errMsg.includes('Verification failed') ||
+            errMsg.includes('Invalid or unsupported zip format') ||
+            errMsg.includes('END header') ||
+            errMsg.includes('Bad local file header') ||
+            errMsg.includes('Invalid CEN header')
           ) {
-            throw zipError
+            console.error('ZIP is corrupt or has no subtitles, skipping this candidate')
+            throw new Error(`Corrupt ZIP download: ${errMsg}`)
           }
           
-          // If we are here, AdmZip might have failed to parse headers (invalid zip).
+          // If we are here, AdmZip might have failed because the file is NOT a zip at all
+          // (e.g. a plain .srt file downloaded without zip wrapper).
           // Fallthrough to treat as single file.
+          console.log('File is not a ZIP, treating as plain subtitle file.')
         }
 
         // Move temp file to destination (if not already handled by zip extraction)
