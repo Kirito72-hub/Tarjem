@@ -1,5 +1,6 @@
 import React from 'react'
 import { Minus, X, Square } from 'lucide-react'
+import appIcon from '../../../../resources/icon.png'
 
 export const TitleBar: React.FC = () => {
   const [isMaximized, setIsMaximized] = React.useState(false)
@@ -34,7 +35,11 @@ export const TitleBar: React.FC = () => {
   return (
     <div className="h-8 bg-[#0F111A] flex items-center justify-between px-3 select-none draggable border-b border-white/5 w-full z-50">
       <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-purple-500/20 border border-purple-500/50"></div>
+        <img
+          src={appIcon}
+          alt="Tarjem"
+          className="w-4 h-4 object-contain"
+        />
         <span className="text-xs font-medium text-gray-400 tracking-wide">Tarjem {version && `v${version}`}</span>
       </div>
       <div className="flex items-center gap-3 no-drag">
