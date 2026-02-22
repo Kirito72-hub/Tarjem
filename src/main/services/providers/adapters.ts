@@ -52,9 +52,8 @@ export class SubDLAdapter implements SubtitleProvider {
     language: string
   ): Promise<SubtitleResult[]> {
     try {
-      const searchTitle = metadata.title || query
       const params: any = {
-        query: searchTitle,
+        query: metadata.title || query,
         language,
         type: metadata.type || 'movie',
         startSeason: metadata.season,
@@ -63,39 +62,8 @@ export class SubDLAdapter implements SubtitleProvider {
         tmdbId: metadata.tmdbId
       }
       const res = await this.service.search(params)
-      const results = res?.results || []
-
-      // If search returned results, we're done
-      if (results.length > 0) return results
-
-      // If the metadata title differs from the original query (e.g., AniList romaji vs English),
-      // retry with the original query as fallback
-      if (searchTitle !== query && query && query.trim().length > 0) {
-        console.log(`[SubDLAdapter] No results for "${searchTitle}", retrying with original query: "${query}"`)
-        const fallbackRes = await this.service.search({ ...params, query })
-        return fallbackRes?.results || []
-      }
-
-      return results
+      return res?.results || []
     } catch (e) {
-      // If the primary search threw an error AND we have an alternative query, try it
-      const searchTitle = metadata.title || query
-      if (searchTitle !== query && query && query.trim().length > 0) {
-        console.log(`[SubDLAdapter] Error with "${searchTitle}", retrying with original query: "${query}"`)
-        try {
-          const params: any = {
-            query,
-            language,
-            type: metadata.type || 'movie',
-            startSeason: metadata.season,
-            startEpisode: metadata.episode
-          }
-          const fallbackRes = await this.service.search(params)
-          return fallbackRes?.results || []
-        } catch (e2) {
-          console.error('[SubDLAdapter] Fallback also failed:', e2)
-        }
-      }
       console.error('[SubDLAdapter] Search Error:', e)
       return []
     }

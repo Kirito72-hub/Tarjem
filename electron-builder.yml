@@ -9,17 +9,11 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-  - '!**/darwin/**'
-  - '!**/*.dylib'
-  - '!**/linux/**'
-  - '!**/*.so'
-  - '!**/*.so.*'
 asarUnpack:
   - resources/**
   - node_modules/ffmpeg-static/**
   - node_modules/fluent-ffmpeg/**
 win:
-  icon: resources/favicon.ico
   executableName: tarjem
   target:
     - portable

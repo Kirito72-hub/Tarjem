@@ -860,82 +860,8 @@ const App: React.FC = () => {
           addStep(id, 'Hash search failed, falling back to text search', 'WARNING')
 
           // Parse filename to extract metadata (including isAnime flag)
-          let parsedMetadata = await window.api.utils.parseFilename(episode.filename)
-          console.log('Parsed metadata from filename:', parsedMetadata)
-
-          // ── Smart Title Resolution: Always parse folder + filename ──
-          // Decide which has the real series name by detecting release folders vs generic folders
-          if (episode.path) {
-            const pathParts = episode.path.replace(/\\/g, '/').split('/')
-            const folderName = pathParts.length >= 2 ? pathParts[pathParts.length - 2] : ''
-
-            // Generic folders that should never be used as a title source
-            const GENERIC_FOLDERS = new Set([
-              'downloads', 'videos', 'movies', 'anime', 'series', 'tv', 'tv shows',
-              'desktop', 'documents', 'temp', 'tmp', 'new folder', 'torrents',
-              'completed', 'incomplete', 'media', 'content', 'stuff', 'users',
-              'home', 'public', 'shared', 'library', 'data'
-            ])
-
-            // Release markers that indicate the folder is a proper release (not generic)
-            const RELEASE_MARKERS = /(?:1080p|720p|480p|2160p|4k|x264|x265|hevc|avc|10.?bit|dual.?audio|bdri?p|webrip|brrip|bluray|web-?dl|season|s\d{1,2}|complete|batch|\b(?:ember|subsplease|erai|judas|yts|rartv|tigole)\b)/i
-
-            const folderLower = folderName.toLowerCase().trim()
-            const isGenericFolder = GENERIC_FOLDERS.has(folderLower) || folderLower === ''
-            const isReleaseFolder = !isGenericFolder && RELEASE_MARKERS.test(folderName)
-
-            if (!isGenericFolder && folderName.length > 0) {
-              // Instead of parsing the folder name (guessit fails on release-format folders),
-              // manually strip all release markers to extract the series title directly
-              const folderTitle = folderName
-                // Strip quality
-                .replace(/\b(1080p|720p|480p|2160p|4k)\b/gi, '')
-                // Strip codecs & format
-                .replace(/\b(x264|x265|h\.?264|h\.?265|hevc|avc|aac|flac|opus|dts|atmos)\b/gi, '')
-                // Strip DD/DD+ separately (\b doesn't work after + which is non-word char)
-                .replace(/\bdd\+?/gi, '')
-                // Strip source
-                .replace(/\b(bdri?p|webrip|brrip|bluray|web-?dl|dvdrip|hdtv|remux)\b/gi, '')
-                // Strip bit depth & audio
-                .replace(/\b(10[\s.-]?bits?|8[\s.-]?bits?|dual[\s.-]?audio|multi[\s.-]?audio|eng?[\s.-]?sub)\b/gi, '')
-                // Strip season indicators (S01, Season 1, etc.)
-                .replace(/\b(s\d{1,2})\b/gi, '')
-                .replace(/\bseason\s*\d+\b/gi, '')
-                // Strip batch/complete
-                .replace(/\b(complete|batch)\b/gi, '')
-                // Strip release group at end (e.g., "-EMBER", "-YTS", "- RARTV")
-                .replace(/[-–]\s*[A-Za-z0-9]+\s*$/, '')
-                // Strip bracket/paren content (e.g., [EMBER], (YTS))
-                .replace(/[\[\(][^\]\)]*[\]\)]/g, '')
-                // Clean up separators, stray special characters, and whitespace
-                .replace(/[._\-+]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim()
-
-              console.log(`[SmartTitle] Folder: "${folderName}" → cleaned title: "${folderTitle}", isRelease: ${isReleaseFolder}`)
-
-              const fileTitle = parsedMetadata.title || ''
-
-              // Use folder title if it's a release folder AND we extracted a meaningful title
-              const shouldUseFolder =
-                folderTitle.length > 0 &&
-                (isReleaseFolder || folderTitle.length > fileTitle.length * 1.5)
-
-              if (shouldUseFolder) {
-                console.log(`[SmartTitle] ✓ Using folder title: "${folderTitle}" instead of filename title: "${fileTitle}"`)
-                addStep(id, `Detected series from folder: "${folderTitle}"`, 'INFO')
-                parsedMetadata = {
-                  ...parsedMetadata,
-                  title: folderTitle,
-                  cleanTitle: folderTitle.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
-                }
-              } else {
-                console.log(`[SmartTitle] ✗ Keeping filename title: "${fileTitle}" (folder: "${folderTitle}")`)
-              }
-            } else {
-              console.log(`[SmartTitle] Generic/empty folder "${folderName}", using filename title only`)
-            }
-          }
+          const parsedMetadata = await window.api.utils.parseFilename(episode.filename)
+          console.log('Parsed metadata:', parsedMetadata)
 
           const cleanedQuery = parsedMetadata.title || cleanFilename(episode.filename)
           console.log('Fallback Query:', cleanedQuery)

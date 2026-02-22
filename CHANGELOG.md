@@ -1,14 +1,13 @@
 # Changelog
 
-## v2.0.1-beta (2026-02-08)
+## v2.0.3-beta (2026-02-22)
 
-### 🐛 Bug Fixes
-- **Batch Subtitle Matching:** Fixed `[1 - 12]` style batch packs being incorrectly identified as Episode 1 only, preventing matches for episodes 2-12.
-- **Temp File Cleanup:** Fixed orphan 0-byte temp files being created when subtitle filenames contain illegal Windows characters (e.g., colons).
+### 🐛 Fixes
+- **Batch Subtitle Support:** Fixed parser misidentifying `[1 - 12]` range patterns as "Episode 1", causing episodes 2-12 to find no results. Batch subtitle packs are now correctly matched to any episode in their range.
+- **Temp File Cleanup:** Fixed orphan 0-byte temp files being created on disk when subtitle filenames contained Windows-illegal characters (e.g., colons in Crunchyroll titles). Filenames are now sanitized before creating temp paths.
 
-### 🔧 Technical
-- Added Range Detection in parser to correctly identify batch/season pack subtitles.
-- Added `sanitizeFilename()` helper to strip Windows-illegal characters from temp paths.
+### 🔍 Improvements
+- **Version Display:** App title bar now dynamically reflects the current version from `package.json` via IPC.
 
 ---
 
