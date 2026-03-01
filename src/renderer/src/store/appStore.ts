@@ -27,7 +27,8 @@ export const useAppStore = create<AppState>((set) => ({
     preferredLanguages: ['en'],
     enabledSources: ['opensubtitles'],
     autoDownload: true,
-    defaultOutputPath: ''
+    defaultOutputPath: '',
+    parserMode: 'anime' as const
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),

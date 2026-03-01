@@ -35,12 +35,10 @@ export const TitleBar: React.FC = () => {
   return (
     <div className="h-8 bg-[#0F111A] flex items-center justify-between px-3 select-none draggable border-b border-white/5 w-full z-50">
       <div className="flex items-center gap-2">
-        <img
-          src={appIcon}
-          alt="Tarjem"
-          className="w-4 h-4 object-contain"
-        />
-        <span className="text-xs font-medium text-gray-400 tracking-wide">Tarjem {version && `v${version}`}</span>
+        <img src={appIcon} alt="Tarjem" className="w-4 h-4 object-contain" />
+        <span className="text-xs font-medium text-gray-400 tracking-wide">
+          Tarjem {version && `v${version}`}
+        </span>
       </div>
       <div className="flex items-center gap-3 no-drag">
         <button

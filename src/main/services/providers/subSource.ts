@@ -4,7 +4,8 @@ import path from 'path'
 import AdmZip from 'adm-zip'
 import { SubtitleProvider, SubtitleResult } from './types'
 import { MetadataResult } from '../metadataApi'
-import { parseMediaFilename } from '../../utils/guessitParser'
+import { findEpisodeInZip } from '../subtitleMatcher'
+import { parseWithGuessit } from '../guessit.service'
 
 export class SubSourceService implements SubtitleProvider {
   readonly id = 'subsource'
@@ -222,7 +223,7 @@ export class SubSourceService implements SubtitleProvider {
             if (episode !== undefined && filteredSubs.length > 0) {
               const beforeCount = filteredSubs.length
               filteredSubs = filteredSubs.filter((sub) => {
-                const parsed = parseMediaFilename(sub.filename)
+                const parsed = parseWithGuessit(sub.filename)
                 // Keep if: subtitle has same episode, OR subtitle has no episode detected (pack/batch)
                 if (parsed.episode === undefined) {
                   // No episode in filename - could be a pack, keep it
@@ -343,82 +344,59 @@ export class SubSourceService implements SubtitleProvider {
 
       console.log(`[SubSource] Downloaded to: ${finalDestination}`)
 
-      // If it's a zip file, extract the subtitle
+      // [NEW] Buffer Validation: Check if the file is a valid ZIP
+      let isZipBuffer = false
       if (actualExtension === 'zip') {
+        try {
+          const fd = fs.openSync(finalDestination, 'r')
+          const buffer = Buffer.alloc(4)
+          fs.readSync(fd, buffer, 0, 4, 0)
+          fs.closeSync(fd)
+          const hexSignature = buffer.toString('hex')
+          if (
+            hexSignature === '504b0304' ||
+            hexSignature === '504b0506' ||
+            hexSignature === '504b0708'
+          ) {
+            isZipBuffer = true
+          }
+        } catch (err) {
+          console.error('[SubSource] Failed to read downloaded buffer signature:', err)
+        }
+        console.log(`[SubSource] Buffer signature indicates ZIP: ${isZipBuffer}`)
+      }
+
+      // If it's a zip file AND structurally a zip buffer, extract the subtitle
+      if (actualExtension === 'zip' && isZipBuffer) {
         if (options?.skipExtraction) {
-            console.log('[SubSource] Extraction skipped by request')
-            return {
-                path: finalDestination,
-                wasZip: false
-            }
+          console.log('[SubSource] Extraction skipped by request')
+          return {
+            path: finalDestination,
+            wasZip: false
+          }
         }
 
         try {
           const zip = new AdmZip(finalDestination)
           const zipEntries = zip.getEntries()
-          // console.log(`[SubSource] ZIP contains ${zipEntries.length} entries. Scanning...`)
+          console.log(`[SubSource] ZIP contains ${zipEntries.length} entries. Scanning...`)
           // zipEntries.forEach(e => {
           //     if (!e.isDirectory) console.log(` - ${e.entryName}`)
           // })
 
-          // Helper to check if file matches requested episode
-          const isMatchingEpisode = (filename: string): boolean => {
-            if (!options?.startEpisode) return false
+          // --- Centralized episode matching via SubtitleMatcher waterfall ---
+          // Passes: Anitomy → Guessit → Strict Regex (never matches year digits).
+          // If only 1 subtitle in zip → used directly. If episode specified and no match → throws.
+          const isAnime = !!(options as any)?.isAnime
+          let subtitleEntry = await findEpisodeInZip(zipEntries, {
+            season: options?.startSeason,
+            episode: options?.startEpisode,
+            isAnime
+          })
 
-            const ep = options.startEpisode!
-
-            // Use robust filename parser
-            const parsed = parseMediaFilename(filename)
-            if (parsed.episode === ep) {
-              // If season is known, check it too
-              if (options.startSeason && parsed.season && parsed.season !== options.startSeason) {
-                return false
-              }
-              // console.log(`[SubSource] File "${filename}" MATCHED episode ${ep} (via FilenameParser)`)
-              return true
-            }
-
-            // Fallback to simple regex if parser failed to extract episode
-            const epStr = ep.toString().padStart(2, '0')
-            const epNum = ep.toString()
-            const regex = new RegExp(`(?:^|[^0-9])(?:${epStr}|${epNum})(?:[^0-9]|$)`, 'i')
-            const isMatch = regex.test(filename)
-
-            if (isMatch) {
-              // console.log(`[SubSource] File "${filename}" MATCHED episode ${ep} (via Regex)`)
-            }
-
-            return isMatch
-          }
-
-          // Find best subtitle file
-          // Priority 1: Exact season/episode match (if options provided)
-          let subtitleEntry: any = null
-
-          if (options?.startEpisode) {
-            // console.log(`[SubSource] ZIP Extraction: Looking for episode ${options.startEpisode}`)
-            subtitleEntry = zipEntries.find(
-              (entry) =>
-                !entry.isDirectory &&
-                /\.(srt|ass|ssa|sub|vtt)$/i.test(entry.entryName) &&
-                isMatchingEpisode(entry.entryName)
-            )
-
-            if (subtitleEntry) {
-              console.log(`[SubSource] Found matching episode in ZIP: ${subtitleEntry.entryName}`)
-            }
-          }
-
-          // Priority 2: If no match found, throw error (caller can retry with next result)
-          if (!subtitleEntry) {
-            // Delete the temp zip before throwing
-            try {
-              fs.unlinkSync(finalDestination)
-              console.log(`[SubSource] Deleted temp zip: ${finalDestination}`)
-            } catch (e) {
-              // ignore
-            }
-            throw new Error(`No episode ${options?.startEpisode || 'N/A'} found in ZIP archive`)
+          if (subtitleEntry === null) {
+            console.log('[SubSource] No subtitle match found in ZIP, trying next candidate...')
+            throw new Error(`No subtitles found in ZIP archive`)
           }
 
           if (subtitleEntry) {
@@ -434,10 +412,10 @@ export class SubSourceService implements SubtitleProvider {
             }
 
             const extractedData = subtitleEntry.getData()
-            // console.log(`[SubSource] Extracted data size: ${extractedData.length} bytes`)
+            console.log(`[SubSource] Extracted data size: ${extractedData.length} bytes`)
             if (extractedData.length > 0) {
               const header = extractedData.slice(0, 4).toString('hex')
-              // console.log(`[SubSource] Extracted file header (hex): ${header}`)
+              console.log(`[SubSource] Extracted file header (hex): ${header}`)
               if (header === '504b0304') {
                 console.warn('[SubSource] WARNING: Extracted file appears to be a ZIP archive!')
               }
@@ -482,13 +460,14 @@ export class SubSourceService implements SubtitleProvider {
         } catch (extractError: unknown) {
           const errMsg = extractError instanceof Error ? extractError.message : String(extractError)
           console.error(`[SubSource] Failed to extract zip:`, errMsg)
-          
-          // Cleanup the zip file before re-throwing or returning
+
+          // Cleanup the zip file bypassed before re-throwing or returning to allow debugging
           try {
-             if (fs.existsSync(finalDestination)) {
-                fs.unlinkSync(finalDestination)
-                // console.log(`[SubSource] Cleanup on error: Deleted ${finalDestination}`)
-             }
+            if (fs.existsSync(finalDestination)) {
+              console.log(
+                `[SubSource] Cleanup bypassed on error to allow debugging of: ${finalDestination}`
+              )
+            }
           } catch (e) {}
 
           // If it's an episode mismatch error, re-throw so caller can retry

@@ -4,6 +4,7 @@ import { LanguageDropdown } from './LanguageDropdown'
 
 export const SettingsView: React.FC = () => {
   const [interfaceLanguage, setInterfaceLanguage] = useState('en')
+  const [parserMode, setParserMode] = useState<'anime' | 'tv'>('tv')
   // Subtitle language is now managed via the "cog" menu in Dashboard (SubtitleSourcesModal)
 
   // API Keys State
@@ -48,6 +49,9 @@ export const SettingsView: React.FC = () => {
 
         const exportPath = await window.api.settings.get('export_path')
         if (exportPath) setExportPath(exportPath)
+
+        const savedMode = await window.api.settings.get('parser_mode')
+        if (savedMode === 'anime' || savedMode === 'tv') setParserMode(savedMode)
       }
     }
     loadSettings()
@@ -195,6 +199,67 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
+        {/* Auto Match Behaviour */}
+        <div className="bg-[#1C212E] rounded-xl border border-white/5 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-purple-400"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              <path d="M4.93 4.93a10 10 0 0 0 0 14.14" />
+            </svg>
+            Auto Match Behaviour
+          </h3>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Parser Mode
+            </label>
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => {
+                  setParserMode('tv')
+                  window.api.settings.set('parser_mode', 'tv')
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all border ${
+                  parserMode === 'tv'
+                    ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
+                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
+                }`}
+              >
+                📺 TV
+              </button>
+              <button
+                onClick={() => {
+                  setParserMode('anime')
+                  window.api.settings.set('parser_mode', 'anime')
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all border ${
+                  parserMode === 'anime'
+                    ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
+                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
+                }`}
+              >
+                🎌 Anime
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {parserMode === 'anime'
+                ? 'Anime mode: Uses a 3-pass waterfall (Anitomy → Guessit → Anime-Name-Tool), each verified against AniList at 80% similarity.'
+                : 'TV mode: Uses Guessit directly for fast, accurate TV show and movie parsing.'}
+            </p>
+          </div>
+        </div>
+
         {/* Export Configuration */}
         <div className="bg-[#1C212E] rounded-xl border border-white/5 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 overflow-visible">
           <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
@@ -289,7 +354,10 @@ export const SettingsView: React.FC = () => {
                 <a
                   href="#"
                   onClick={() =>
-                    window.electron?.ipcRenderer.send('open-external', 'https://opensubtitles.com')
+                    (window as any).electron?.ipcRenderer.send(
+                      'open-external',
+                      'https://opensubtitles.com'
+                    )
                   }
                   className="text-purple-400 hover:underline"
                 >
@@ -315,7 +383,7 @@ export const SettingsView: React.FC = () => {
                 <a
                   href="#"
                   onClick={() =>
-                    window.electron?.ipcRenderer.send('open-external', 'https://subdl.com')
+                    (window as any).electron?.ipcRenderer.send('open-external', 'https://subdl.com')
                   }
                   className="text-purple-400 hover:underline"
                 >
@@ -341,7 +409,10 @@ export const SettingsView: React.FC = () => {
                 <a
                   href="#"
                   onClick={() =>
-                    window.electron?.ipcRenderer.send('open-external', 'https://subsource.net')
+                    (window as any).electron?.ipcRenderer.send(
+                      'open-external',
+                      'https://subsource.net'
+                    )
                   }
                   className="text-purple-400 hover:underline"
                 >
@@ -367,7 +438,7 @@ export const SettingsView: React.FC = () => {
                 <a
                   href="#"
                   onClick={() =>
-                    window.electron?.ipcRenderer.send(
+                    (window as any).electron?.ipcRenderer.send(
                       'open-external',
                       'http://www.omdbapi.com/apikey.aspx'
                     )

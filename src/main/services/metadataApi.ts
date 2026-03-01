@@ -37,6 +37,7 @@ export interface MetadataResult {
   anilistId?: number | null
   malId?: number | null
   title: string
+  fallbackTitle?: string
   year?: number | null
   type: 'movie' | 'tv'
   overview?: string

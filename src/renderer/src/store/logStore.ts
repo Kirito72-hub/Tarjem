@@ -18,7 +18,7 @@ export interface ProcessLog {
 
 interface LogState {
   logs: ProcessLog[]
-  
+
   // Actions
   createLog: (id: string, filename: string) => void
   addStep: (logId: string, message: string, type?: LogStep['type'], detail?: string) => void
@@ -32,18 +32,16 @@ export const useLogStore = create<LogState>((set) => ({
   createLog: (id, filename) =>
     set((state) => {
       // Prevent duplicates if already exists (restart it?)
-       const existing = state.logs.find((l) => l.id === id)
-       if (existing) {
-         // Reset mostly
-         return {
-            logs: state.logs.map((l) => 
-                l.id === id 
-                ? { ...l, timestamp: new Date(), status: 'IN_PROGRESS', steps: [] }
-                : l
-            )
-         }
-       }
-       return {
+      const existing = state.logs.find((l) => l.id === id)
+      if (existing) {
+        // Reset mostly
+        return {
+          logs: state.logs.map((l) =>
+            l.id === id ? { ...l, timestamp: new Date(), status: 'IN_PROGRESS', steps: [] } : l
+          )
+        }
+      }
+      return {
         logs: [
           {
             id,
@@ -80,9 +78,7 @@ export const useLogStore = create<LogState>((set) => ({
 
   updateStatus: (logId, status) =>
     set((state) => ({
-      logs: state.logs.map((log) =>
-        log.id === logId ? { ...log, status } : log
-      )
+      logs: state.logs.map((log) => (log.id === logId ? { ...log, status } : log))
     })),
 
   clearLogs: () => set({ logs: [] })

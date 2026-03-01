@@ -10,10 +10,13 @@ export class Downloader {
   async downloadFile(url: string, destinationPath: string) {
     try {
       const response = await axios.get(url, {
-        responseType: 'stream'
+        responseType: 'stream',
+        maxRedirects: 10,
+        timeout: 30000
       })
 
-      await streamPipeline(response.data, fs.createWriteStream(destinationPath))
+      // Stream the response to disk ONCE. Calling streamPipeline twice would
+      // exhaust the readable stream on the first call, writing 0 bytes the second time.
       await streamPipeline(response.data, fs.createWriteStream(destinationPath))
       return { success: true, headers: response.headers }
     } catch (error) {

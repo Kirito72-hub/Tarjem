@@ -94,23 +94,29 @@ export class FFmpegService {
         .on('start', (commandLine) => {
           console.log('Spawned Ffmpeg with command: ' + commandLine)
         })
-        .on('progress', (() => {
-          // Throttle progress updates to prevent UI flickering
-          let lastProgress = -1
-          let lastUpdate = 0
-          return (progress: { percent?: number }) => {
-            if (onProgress && progress.percent) {
-              const now = Date.now()
-              const currentProgress = Math.round(progress.percent)
-              // Only update if progress changed by at least 1% or 100ms elapsed
-              if (currentProgress !== lastProgress && (currentProgress - lastProgress >= 1 || now - lastUpdate >= 100)) {
-                lastProgress = currentProgress
-                lastUpdate = now
-                onProgress(currentProgress)
+        .on(
+          'progress',
+          (() => {
+            // Throttle progress updates to prevent UI flickering
+            let lastProgress = -1
+            let lastUpdate = 0
+            return (progress: { percent?: number }) => {
+              if (onProgress && progress.percent) {
+                const now = Date.now()
+                const currentProgress = Math.round(progress.percent)
+                // Only update if progress changed by at least 1% or 100ms elapsed
+                if (
+                  currentProgress !== lastProgress &&
+                  (currentProgress - lastProgress >= 1 || now - lastUpdate >= 100)
+                ) {
+                  lastProgress = currentProgress
+                  lastUpdate = now
+                  onProgress(currentProgress)
+                }
               }
             }
-          }
-        })())
+          })()
+        )
         .on('error', (err) => {
           console.error('An error occurred: ' + err.message)
           reject(err)

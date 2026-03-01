@@ -5,13 +5,16 @@ The first beta release of Tarjem brings the complete **Auto Match** workflow - a
 ## ✨ Major Features
 
 ### 🤖 Complete Auto Match Workflow
+
 - **Automatic Hash Calculation** - Uses OpenSubtitles hash algorithm for precise matching
 - **Multi-Provider Search** - Searches across OpenSubtitles, SubDL, and SubSource simultaneously
 - **Intelligent Episode Matching** - Extracts episode numbers from filenames and matches them with subtitles
 - **One-Click Processing** - Hash → Search → Download → Merge - all automated!
 
 ### 🎯 Smart Subtitle Selection
+
 **Episode Number Detection** - Supports multiple naming patterns:
+
 - `Show Name - 06.mkv` → Episode 6
 - `Show Name S01E12.mkv` → Season 1, Episode 12
 - `Show Name EP 5.mkv` → Episode 5
@@ -22,11 +25,13 @@ The first beta release of Tarjem brings the complete **Auto Match** workflow - a
 **Scoring Algorithm** - Prioritizes exact episode matches + high ratings + download counts
 
 ### 🎨 Subtitle Format Preservation
+
 - **Original Styling Maintained** - Font size, colors, positioning preserved
 - **FFmpeg Smart Codec** - Uses `-c:s copy` for MKV files to avoid conversion
 - **No Quality Loss** - Subtitles embedded exactly as downloaded
 
 ### 🧹 Automatic Cleanup
+
 - **Temporary File Removal** - Deletes downloaded subtitle files after successful merge
 - **Clean Export Folders** - Only merged video files remain
 - **Error-Safe** - Cleanup failures won't affect the merge process

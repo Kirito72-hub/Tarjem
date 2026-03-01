@@ -102,7 +102,7 @@ export class OpenSubtitlesService {
           const fileId = attrs.files?.[0]?.file_id
 
           // DEBUG LOG
-          // console.log('OpenSubtitles Item:', JSON.stringify(item, null, 2))
+          console.log('OpenSubtitles Item:', JSON.stringify(item, null, 2))
 
           return {
             id: item.id,
@@ -117,9 +117,13 @@ export class OpenSubtitlesService {
         .filter((item) => item.url && item.url.trim() !== '')
 
       return { data: keywords }
-    } catch (error) {
+    } catch (error: any) {
+      if (typeof error.response?.data === 'string' && error.response.data.includes('<html')) {
+        console.warn('OpenSubtitles returned HTML/Cloudflare page. Treating as empty.')
+        return { data: [] }
+      }
       console.error('OpenSubtitles Search Error:', error)
-      throw error
+      return { data: [] } // Avoid throwing to maintain resilient behavior
     }
   }
 
@@ -149,7 +153,7 @@ export class OpenSubtitlesService {
           const fileId = attrs.files?.[0]?.file_id
 
           // DEBUG LOG
-          // console.log('OpenSubtitles Item:', JSON.stringify(item, null, 2))
+          console.log('OpenSubtitles Item:', JSON.stringify(item, null, 2))
 
           return {
             id: item.id,
@@ -513,9 +517,6 @@ export class SubDLService {
 
         // DEBUG: Log the results before mapping to see what the TMDB ID search returned
         if (response.data.results.length > 0) {
-          const first = response.data.results[0]
-          console.log('SubDL Recursive/Final Result Keys:', Object.keys(first).join(', '))
-          console.log('SubDL Recursive/Final Result Sample (FULL):', JSON.stringify(first, null, 2))
         }
 
         // Map results to common format
@@ -539,6 +540,10 @@ export class SubDLService {
     } catch (error: any) {
       console.error('SubDL Search Error:', error.message)
       if (error.response) {
+        if (typeof error.response.data === 'string' && error.response.data.includes('<html')) {
+          console.warn('SubDL returned HTML/Cloudflare page format. Returning empty array.')
+          return { results: [] }
+        }
         console.error('SubDL Error Response:', error.response.status, error.response.data)
       }
       return { results: [] }

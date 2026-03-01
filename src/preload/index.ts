@@ -66,6 +66,12 @@ const api = {
   utils: {
     parseFilename: (filename: string) => ipcRenderer.invoke('utils:parseFilename', filename),
     deleteFile: (filePath: string) => ipcRenderer.invoke('utils:deleteFile', filePath)
+  },
+
+  // Alass subtitle sync
+  alass: {
+    sync: (options: { videoPath: string; inputSubPath: string; outputSubPath: string }) =>
+      ipcRenderer.invoke('alass:sync', options)
   }
 }
 

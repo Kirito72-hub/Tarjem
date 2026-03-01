@@ -3,24 +3,26 @@
 ## v3.0.0-beta (2026-02-22)
 
 ### 🎨 New App Icon
+
 - **Custom Icon:** Updated application icon across the taskbar, window, and title bar.
 - **Title Bar Icon:** App icon now appears in the custom title bar alongside the version number.
 
 ### 🐛 Fixes
+
 - **Batch Subtitle Search:** Fixed parser treating `[1 - 12]` episode ranges as "Episode 1", causing episodes 2-12 to return no results. Batch packs now correctly match any episode in their range.
 - **Temp File Cleanup:** Fixed orphan 0-byte temp files left behind when subtitle filenames contain Windows-illegal characters (e.g. colons from Crunchyroll titles).
 
 ---
 
-
-
 ## v2.0.3-beta (2026-02-22)
 
 ### 🐛 Fixes
+
 - **Batch Subtitle Support:** Fixed parser misidentifying `[1 - 12]` range patterns as "Episode 1", causing episodes 2-12 to find no results. Batch subtitle packs are now correctly matched to any episode in their range.
 - **Temp File Cleanup:** Fixed orphan 0-byte temp files being created on disk when subtitle filenames contained Windows-illegal characters (e.g., colons in Crunchyroll titles). Filenames are now sanitized before creating temp paths.
 
 ### 🔍 Improvements
+
 - **Version Display:** App title bar now dynamically reflects the current version from `package.json` via IPC.
 
 ---
@@ -28,13 +30,14 @@
 ## v2.0.0-beta (2026-02-05)
 
 ### ✨ Manual Downloads Engine
+
 - **Robust Extension Handling:** Auto-detects extensions (`.ass`, `.srt`, `.zip`) from server headers (`Content-Disposition`) when not present in URL.
 - **Auto-Directory Creation:** Automatically creates destination folders if missing, fixing ENOENT errors.
 - **Skip Extraction:** Option to preserve original archives (ZIP/RAR) instead of auto-extracting.
 
 ### 🔍 Improvements
-- **AniList Logging:** Explicit confirmation when Anime ID is found via AniList.
 
+- **AniList Logging:** Explicit confirmation when Anime ID is found via AniList.
 
 ## v1.0.5-beta (2026-02-04)
 

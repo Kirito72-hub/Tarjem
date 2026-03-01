@@ -1,33 +1,33 @@
 {
-  "subtitleId": 10073071,
-  "movieId": 141186,
+  "subtitleId": 1405152,
+  "movieId": 10816,
   "language": "arabic",
   "releaseInfo": [
-    "[Crunchyroll] Ao no Exorcist: Yuki no Hate-hen [1 -  12]"
+    "[eXtraTranz][KimSaraen]The.Town.Where.Only.I.Am.Missing.2016[Arabic][720p]"
   ],
-  "commentary": "\t\nترجمة 🅲🆁🆄🅽🅲🅷🆈🆁🅾🅻🅻",
-  "files": 12,
-  "size": 141129,
-  "hearingImpaired": false,
+  "commentary": "Bkoorsan",
+  "files": null,
+  "size": null,
+  "hearingImpaired": true,
   "foreignParts": false,
-  "framerate": "N/A",
-  "productionType": "translated",
-  "releaseType": "web",
-  "downloads": 35,
+  "framerate": null,
+  "productionType": null,
+  "releaseType": null,
+  "downloads": 4,
   "comments": 0,
   "rating": {
     "good": 0,
     "bad": 0,
     "total": 0
   },
-  "preview": "﻿[Script Info]\nTitle: العربية\nScaledBorderAndShadow: yes\nOriginal Script: cr_ar  [http://www.crunchyroll.com/user/cr_ar]\nOriginal Translation: \nOriginal Editing: \nOriginal Timing: \nSynch Point: \nScript Updated By: \nUpdate Details: \nScriptType: v4.00+\nCollisions: Normal\nPlayResX: 640\nPlayResY: 360\nTimer: 0.0000\nWrapStyle: 0\n\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,Strikeout,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Default,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,1,0,2,0010,0010,0020,1\n\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\nDialogue: 0,0:00:01.14,0:00:06.98,Default,,0000,0000,0000,,{\\fad(900,900)\\pos(552,312)\\b0\\c&HFAFBFB&}[الحلقة 1: [طموح\nDialogue: 0,0:01:46.91,0:01:53.55,Default,,0000,0000,0000,,{\\fad(165,0)\\b0\\pos(320,295)\\fs20\\shad1\\be1\\bord0.2\\c&HFAFBFB&}قبو كاتدرائيّة سان بيير باولو - تنظيم فرسان الصّليب\\Nالحقيقيّ - مائدة قاعة الاجتماعات المستديرة\n",
-  "uploaderId": 1116036,
+  "preview": null,
+  "uploaderId": 983643,
   "contributors": [
     {
-      "id": 1116036,
-      "displayname": "wisam al sharifi"
+      "id": 983643,
+      "displayname": "Bkoorsan"
     }
   ],
-  "link": "/subtitle/blue-exorcist-beyond-the-snow-saga--season-1-2024/arabic/10073071",
-  "createdAt": "2025-01-07T16:28:39.856Z"
+  "link": "/subtitle/erased-2016/arabic/1405152",
+  "createdAt": "2016-09-15T21:45:00.000Z"
 }

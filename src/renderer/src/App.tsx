@@ -27,7 +27,6 @@ function sanitizeFilename(filename: string): string {
   return filename.replace(/[\\/:*?"<>|]/g, '_').trim()
 }
 
-
 const App: React.FC = () => {
   const [view, setView] = useState<View>('DASHBOARD')
 
@@ -303,13 +302,14 @@ const App: React.FC = () => {
 
         // Construct path: ExportPath / CleanSeriesName / Filename
         // Clean Series Name (remove "Season X" if possible to group seasons together)
-        const cleanSeriesName = seriesName
-          .replace(/\bSeason\s+\d+\b/i, '')
-          .replace(/\bS\d+\b/i, '')
-          .replace(/\b\d{4}\b/g, '') // Remove Year (optional, but keeps folders cleaner)
-          .replace(/[._-]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim() || 'Unsorted'
+        const cleanSeriesName =
+          seriesName
+            .replace(/\bSeason\s+\d+\b/i, '')
+            .replace(/\bS\d+\b/i, '')
+            .replace(/\b\d{4}\b/g, '') // Remove Year (optional, but keeps folders cleaner)
+            .replace(/[._-]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim() || 'Unsorted'
 
         destinationPath = `${exportPath}\\${cleanSeriesName}\\${result.filename}`
       } else {
@@ -386,13 +386,14 @@ const App: React.FC = () => {
         // Current API: download(url, destinationPath)
 
         // Clean Series Name for Folder Grouping
-        const cleanSeriesName = seriesName
-          .replace(/\bSeason\s+\d+\b/i, '')
-          .replace(/\bS\d+\b/i, '')
-          .replace(/\b\d{4}\b/g, '')
-          .replace(/[._-]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim() || 'Unsorted'
+        const cleanSeriesName =
+          seriesName
+            .replace(/\bSeason\s+\d+\b/i, '')
+            .replace(/\bS\d+\b/i, '')
+            .replace(/\b\d{4}\b/g, '')
+            .replace(/[._-]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim() || 'Unsorted'
 
         destinationPath = `${exportPath}\\${cleanSeriesName}\\${newFilename}`
       } else {
@@ -417,7 +418,11 @@ const App: React.FC = () => {
 
       console.log('Downloading with options:', downloadOptions)
 
-      const downloaded = await window.api.subtitles.download(result.url, destinationPath, downloadOptions)
+      const downloaded = await window.api.subtitles.download(
+        result.url,
+        destinationPath,
+        downloadOptions
+      )
       const finalPath = typeof downloaded === 'string' ? downloaded : destinationPath
 
       setSearchEpisodes((prev) =>
@@ -520,57 +525,17 @@ const App: React.FC = () => {
       .trim()
   }
 
-  // ============================================================================
-  // ADVANCED SUBTITLE MATCHING ALGORITHM
-  // ============================================================================
 
-  // Levenshtein Distance - Calculate similarity between two strings
-  const levenshteinDistance = (str1: string, str2: string): number => {
-    const s1 = str1.toLowerCase()
-    const s2 = str2.toLowerCase()
 
-    const len1 = s1.length
-    const len2 = s2.length
-
-    // Create 2D array for dynamic programming
-    const matrix: number[][] = []
-
-    // Initialize first column and row
-    for (let i = 0; i <= len1; i++) {
-      matrix[i] = [i]
-    }
-    for (let j = 0; j <= len2; j++) {
-      matrix[0][j] = j
-    }
-
-    // Fill the matrix
-    for (let i = 1; i <= len1; i++) {
-      for (let j = 1; j <= len2; j++) {
-        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1, // deletion
-          matrix[i][j - 1] + 1, // insertion
-          matrix[i - 1][j - 1] + cost // substitution
-        )
-      }
-    }
-
-    // Calculate similarity score (0-1, where 1 is perfect match)
-    const maxLen = Math.max(len1, len2)
-    if (maxLen === 0) return 1
-    return 1 - matrix[len1][len2] / maxLen
-  }
-
-  // Normalize title for better comparison
-  const normalizeTitle = (title: string): string => {
-    return title
+  // Normalize title for comparison (used by extractEpisodeInfo)
+  const normalizeTitle = (title: string): string =>
+    title
       .toLowerCase()
-      .replace(/[._-]/g, ' ') // Replace separators with spaces
-      .replace(/\s+/g, ' ') // Collapse multiple spaces
-      .replace(/\b(the|a|an)\b/g, '') // Remove articles
-      .replace(/[^\w\s]/g, '') // Remove special characters
+      .replace(/[._-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/\b(the|a|an)\b/g, '')
+      .replace(/[^\w\s]/g, '')
       .trim()
-  }
 
   // Helper to extract episode/season info from filename
   interface EpisodeInfo {
@@ -671,126 +636,68 @@ const App: React.FC = () => {
     return result
   }
 
-  // Calculate title similarity score (0-100)
-  const getTitleSimilarity = (videoTitle: string, subtitleTitle: string): number => {
-    const normalizedVideo = normalizeTitle(videoTitle)
-    const normalizedSubtitle = normalizeTitle(subtitleTitle)
 
-    // Calculate Levenshtein similarity
-    const similarity = levenshteinDistance(normalizedVideo, normalizedSubtitle)
 
-    // Return as percentage (0-100)
-    return similarity * 100
-  }
 
-  // Calculate comprehensive match score
-  const calculateMatchScore = (
-    subtitle: SubtitleResult,
-    videoInfo: EpisodeInfo
-  ): { score: number; breakdown: string } => {
-    let score = 0
-    const breakdown: string[] = []
-
-    // Extract subtitle info
-    const subInfo = extractEpisodeInfo(subtitle.filename)
-
-    // 1. Episode Number Match (100 points)
-    if (videoInfo.episode !== undefined && subInfo.episode !== undefined) {
-      if (videoInfo.episode === subInfo.episode) {
-        score += 100
-        breakdown.push('Episode Match: +100')
-      } else {
-        // Wrong episode is a deal-breaker
-        breakdown.push(`Episode Mismatch: 0 (video: ${videoInfo.episode}, sub: ${subInfo.episode})`)
-        return { score: 0, breakdown: breakdown.join(', ') }
-      }
-    } else if (videoInfo.episode !== undefined && subInfo.episode === undefined) {
-      // Video has episode but subtitle doesn't - likely wrong match
-      breakdown.push('No Episode in Subtitle: 0')
-      return { score: 0, breakdown: breakdown.join(', ') }
-    }
-
-    // 2. Title Similarity (0-50 points)
-    const titleSimilarity = getTitleSimilarity(videoInfo.title, subInfo.title)
-    const titleScore = (titleSimilarity / 100) * 50
-
-    // CRITICAL: Reject if title similarity is too low (e.g., < 40%)
-    if (titleSimilarity < 40) {
-      breakdown.push(`Title Mismatch: 0 (Similarity ${titleSimilarity.toFixed(1)}% < 40%)`)
-      return { score: 0, breakdown: breakdown.join(', ') }
-    }
-
-    score += titleScore
-    breakdown.push(`Title Similarity: +${titleScore.toFixed(1)} (${titleSimilarity.toFixed(1)}%)`)
-
-    // 3. Exact Title Match Bonus (30 points)
-    if (videoInfo.normalizedTitle === subInfo.normalizedTitle) {
-      score += 30
-      breakdown.push('Exact Title: +30')
-    }
-
-    // 4. Season Match/Mismatch (25 points or rejection)
-    if (videoInfo.season !== undefined && subInfo.season !== undefined) {
-      if (videoInfo.season === subInfo.season) {
-        score += 25
-        breakdown.push('Season Match: +25')
-      } else {
-        // Wrong season is a deal-breaker (e.g., S03 video with S02 subtitle)
-        breakdown.push(`Season Mismatch: 0 (video: S${videoInfo.season}, sub: S${subInfo.season})`)
-        return { score: 0, breakdown: breakdown.join(', ') }
-      }
-    }
-
-    // 5. Movie Match
-    if (videoInfo.isMovie && subInfo.isMovie) {
-      score += 50
-      breakdown.push('Movie Match: +50')
-    } else if (videoInfo.isMovie !== subInfo.isMovie) {
-      // Movie vs Episode mismatch
-      breakdown.push('Movie/Episode Mismatch: 0')
-      return { score: 0, breakdown: breakdown.join(', ') }
-    }
-
-    // 6. Rating (0-10 points)
-    const ratingScore = (subtitle.rating || 0) * 10
-    score += ratingScore
-    breakdown.push(`Rating: +${ratingScore.toFixed(1)}`)
-
-    // 7. Downloads (0-10 points, capped)
-    const downloadScore = Math.min((subtitle.downloads || 0) / 1000, 10)
-    score += downloadScore
-    breakdown.push(`Downloads: +${downloadScore.toFixed(1)}`)
-
-    return { score, breakdown: breakdown.join(', ') }
-  }
-
-  // Helper to get sorted subtitle candidates for retry logic
+  // Returns subtitle candidates in API order (the API already ranked by quality/downloads).
+  // Only pre-skips results whose filename explicitly shows a WRONG episode number.
+  // Season packs (no episode in filename) always pass — the waterfall extracts the right ep.
   const getSortedCandidates = (
     results: SubtitleResult[],
     videoFilename: string,
-    maxCandidates: number = 5
+    maxCandidates: number = 10
   ): SubtitleResult[] => {
     if (!results || results.length === 0) return []
 
     const videoInfo = extractEpisodeInfo(videoFilename)
 
-    // Filter by preferred language
-    let candidates = results.filter(
-      (r) => r.language.toLowerCase() === subtitleLanguage.toLowerCase()
-    )
+    // Step 1 — Language filter.
+    // Different providers use different formats: SubDL → "AR", SubSource → "arabic".
+    // We normalise both sides so they match.
+    const LANG_MAP: Record<string, string[]> = {
+      ar: ['ar', 'arabic', 'ara'],
+      en: ['en', 'english', 'eng'],
+      fr: ['fr', 'french', 'fra'],
+      es: ['es', 'spanish', 'spa'],
+      de: ['de', 'german', 'deu', 'ger'],
+      pt: ['pt', 'portuguese', 'por'],
+      ru: ['ru', 'russian', 'rus'],
+      tr: ['tr', 'turkish', 'tur'],
+      it: ['it', 'italian', 'ita'],
+      ja: ['ja', 'japanese', 'jpn'],
+      ko: ['ko', 'korean', 'kor'],
+      zh: ['zh', 'chinese', 'zho', 'chi'],
+      fa: ['fa', 'farsi', 'persian', 'fas'],
+      vi: ['vi', 'vietnamese', 'vie'],
+      id: ['id', 'indonesian', 'ind']
+    }
+    const normaliseLang = (lang: string): string => {
+      const l = lang.toLowerCase()
+      for (const aliases of Object.values(LANG_MAP)) {
+        if (aliases.includes(l)) return aliases[0]
+      }
+      return l
+    }
+    const wantedLang = normaliseLang(subtitleLanguage)
+    let candidates = results.filter((r) => normaliseLang(r.language) === wantedLang)
     if (candidates.length === 0) candidates = results
 
-    // Score all candidates
-    const scoredCandidates = candidates.map((subtitle) => {
-      const { score } = calculateMatchScore(subtitle, videoInfo)
-      return { subtitle, score }
-    })
+    // Step 2 — Pre-skip: drop only candidates whose filename explicitly contains a
+    // WRONG episode number. This avoids unnecessary downloads of clearly-wrong files
+    // (e.g. a subtitle labelled "Ep 03" when we want episode 6).
+    // If no episode is detected in the subtitle filename → keep it (likely a season pack).
+    if (videoInfo.episode !== undefined) {
+      const filtered = candidates.filter((subtitle) => {
+        const subInfo = extractEpisodeInfo(subtitle.filename)
+        if (subInfo.episode === undefined) return true // pack / unknown → keep
+        return subInfo.episode === videoInfo.episode   // explicit match → keep
+      })
+      // Only apply the filter if it still leaves us some candidates
+      if (filtered.length > 0) candidates = filtered
+    }
 
-    // Sort by score (highest first) and return top N
-    return scoredCandidates
-      .sort((a, b) => b.score - a.score)
-      .slice(0, maxCandidates)
-      .map((c) => c.subtitle)
+    // Step 3 — Return in API order (trust the provider's ranking), up to maxCandidates
+    return candidates.slice(0, maxCandidates)
   }
 
   const { createLog, addStep, updateStatus } = useLogStore()
@@ -803,8 +710,6 @@ const App: React.FC = () => {
 
     // Create Log Entry
     createLog(id, episode.filename)
-
-
 
     if (tab === 'FILE_MATCH') {
       // Real Hashing Logic
@@ -926,17 +831,24 @@ const App: React.FC = () => {
             addStep(id, `Parsed using: ${metadata.parserUsed}`, 'INFO')
           }
           if (metadata.anilistId) {
-            addStep(id, `Identified as Anime via AniList: ${metadata.title} (ID: ${metadata.anilistId})`, 'SUCCESS')
+            addStep(
+              id,
+              `Identified as Anime via AniList: ${metadata.title} (ID: ${metadata.anilistId})`,
+              'SUCCESS'
+            )
           }
           if (metadata.title) {
-            const epInfo = metadata.episode !== undefined ? `S${metadata.season}E${metadata.episode}` : 'Movie'
+            const epInfo =
+              metadata.episode !== undefined ? `S${metadata.season}E${metadata.episode}` : 'Movie'
             addStep(id, `Detected: ${metadata.title} (${epInfo})`, 'INFO')
           }
           // END: Log Parser Details
 
           for (let attempt = 0; attempt < candidates.length; attempt++) {
             const candidate = candidates[attempt]
-            console.log(`\n[Attempt ${attempt + 1}/${candidates.length}] Trying: ${candidate.filename}`)
+            console.log(
+              `\n[Attempt ${attempt + 1}/${candidates.length}] Trying: ${candidate.filename}`
+            )
 
             // DOWNLOADING stage
             setSearchEpisodes((prev) =>
@@ -945,9 +857,10 @@ const App: React.FC = () => {
                   ? {
                     ...e,
                     stage: ProcessingStage.DOWNLOADING,
-                    statusMessage: attempt > 0
-                      ? `Retry ${attempt + 1}: Downloading ${candidate.filename}...`
-                      : `Downloading: ${candidate.filename}...`,
+                    statusMessage:
+                      attempt > 0
+                        ? `Retry ${attempt + 1}: Downloading ${candidate.filename}...`
+                        : `Downloading: ${candidate.filename}...`,
                     progress: 0
                   }
                   : e
@@ -962,13 +875,14 @@ const App: React.FC = () => {
                 const seriesName = metadata.title || 'Subtitles'
 
                 // Clean Series Name for Folder Grouping
-                const cleanSeriesName = seriesName
-                  .replace(/\bSeason\s+\d+\b/i, '')
-                  .replace(/\bS\d+\b/i, '')
-                  .replace(/\b\d{4}\b/g, '')
-                  .replace(/[._-]/g, ' ')
-                  .replace(/\s+/g, ' ')
-                  .trim() || 'Subtitles'
+                const cleanSeriesName =
+                  seriesName
+                    .replace(/\bSeason\s+\d+\b/i, '')
+                    .replace(/\bS\d+\b/i, '')
+                    .replace(/\b\d{4}\b/g, '')
+                    .replace(/[._-]/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim() || 'Subtitles'
 
                 subtitlePath = `${exportPath}\\${cleanSeriesName}\\temp_${sanitizeFilename(candidate.filename)}`
               } else {
@@ -1036,7 +950,6 @@ const App: React.FC = () => {
           console.log('Selected best subtitle:', successfulSubtitle.filename)
 
           try {
-
             // MERGING stage
             setSearchEpisodes((prev) =>
               prev.map((e) =>
@@ -1058,13 +971,14 @@ const App: React.FC = () => {
               const seriesName = metadata.title || 'Merged'
 
               // Clean Series Name for Folder Grouping
-              const cleanSeriesName = seriesName
-                .replace(/\bSeason\s+\d+\b/i, '')
-                .replace(/\bS\d+\b/i, '')
-                .replace(/\b\d{4}\b/g, '')
-                .replace(/[._-]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim() || 'Merged'
+              const cleanSeriesName =
+                seriesName
+                  .replace(/\bSeason\s+\d+\b/i, '')
+                  .replace(/\bS\d+\b/i, '')
+                  .replace(/\b\d{4}\b/g, '')
+                  .replace(/[._-]/g, ' ')
+                  .replace(/\s+/g, ' ')
+                  .trim() || 'Merged'
 
               // Keep original filename and extension
               const originalFilename = episode.filename
@@ -1078,26 +992,51 @@ const App: React.FC = () => {
 
             console.log('Merging:', episode.path, '+', subtitlePath, '->', outputPath)
 
+            // ── Alass Subtitle Sync ─────────────────────────────────────────
+            // Build synced temp path: e.g. temp_subtitle.srt → temp_subtitle_synced.srt
+            const syncedPath = subtitlePath.replace(/(\.[^.]+)$/, '_synced$1')
+            let finalSubtitlePath = subtitlePath // default: use original if sync fails
+
+            try {
+              addStep(id, 'Syncing subtitle timing with Alass...', 'INFO')
+              await (window.api as any).alass.sync({
+                videoPath: episode.path,
+                inputSubPath: subtitlePath,
+                outputSubPath: syncedPath
+              })
+              finalSubtitlePath = syncedPath
+              addStep(id, 'Subtitle sync successful', 'SUCCESS')
+              console.log('[Alass] Using synced subtitle:', syncedPath)
+            } catch (syncErr: any) {
+              console.warn('[Alass] Sync failed, using original subtitle:', syncErr.message)
+              addStep(id, `Alass sync skipped: ${syncErr.message}`, 'WARNING')
+            }
+            // ── End Alass Sync ──────────────────────────────────────────────
+
             // Setup progress listener for merge
             window.api.merger.onProgress((progress) => {
               setSearchEpisodes((prev) => prev.map((e) => (e.id === id ? { ...e, progress } : e)))
             })
 
-            // Merge video and subtitle
+            // Merge video and subtitle (using synced subtitle, or original as fallback)
             await window.api.merger.mergeMedia({
               videoPath: episode.path,
-              subtitlePath: subtitlePath,
+              subtitlePath: finalSubtitlePath,
               outputPath: outputPath
             })
 
-            // Clean up temporary subtitle file after successful merge
-            try {
-              await window.api.utils.deleteFile(subtitlePath)
-              console.log('Cleaned up temporary subtitle file:', subtitlePath)
-            } catch (cleanupError) {
-              console.warn('Failed to cleanup subtitle file:', cleanupError)
-              // Don't fail the whole process if cleanup fails
+            // Clean up both temp subtitle files after successful merge
+            const safeDelete = async (p: string) => {
+              try {
+                await window.api.utils.deleteFile(p)
+                console.log('Cleaned up file:', p)
+              } catch {
+                /* ignore cleanup errors */
+              }
             }
+            await safeDelete(subtitlePath)   // original extracted subtitle
+            await safeDelete(syncedPath)     // synced subtitle (no-op if sync failed)
+
 
             // Success!
             setSearchEpisodes((prev) =>
@@ -1216,13 +1155,14 @@ const App: React.FC = () => {
         const seriesName = metadata.title || 'Merged'
 
         // Clean Series Name for Folder Grouping
-        const cleanSeriesName = seriesName
-          .replace(/\bSeason\s+\d+\b/i, '')
-          .replace(/\bS\d+\b/i, '')
-          .replace(/\b\d{4}\b/g, '')
-          .replace(/[._-]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim() || 'Merged'
+        const cleanSeriesName =
+          seriesName
+            .replace(/\bSeason\s+\d+\b/i, '')
+            .replace(/\bS\d+\b/i, '')
+            .replace(/\b\d{4}\b/g, '')
+            .replace(/[._-]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim() || 'Merged'
 
         const mergedFilename =
           episode.filename.substring(0, episode.filename.lastIndexOf('.')) + '_merged.mp4'

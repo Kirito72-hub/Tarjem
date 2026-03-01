@@ -21,7 +21,10 @@ import { FFmpegService } from './services/ffmpeg'
 import { OMDbService } from './services/omdbApi'
 import { MetadataCache } from './services/metadataCache'
 import { AniListService } from './services/anilistApi'
-import { parseMediaFilename } from './utils/guessitParser'
+import { parseMediaFilenameDispatcher } from './services/subtitle.dispatcher'
+import type { ParserMode } from './services/subtitle.dispatcher'
+import { findEpisodeInZip } from './services/subtitleMatcher'
+import { syncSubtitle } from './services/alassSync'
 import { cleanShowTitle } from './utils/titleCleaner'
 import type ElectronStore from 'electron-store'
 import { ProviderRegistry } from './services/providerRegistry'
@@ -58,7 +61,9 @@ function createWindow(): void {
     titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     backgroundColor: '#0a0a0a',
-    ...(process.platform === 'linux' ? { icon } : { icon: join(__dirname, '../../build/icon.ico') }),
+    ...(process.platform === 'linux'
+      ? { icon }
+      : { icon: join(__dirname, '../../build/icon.ico') }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -138,7 +143,7 @@ app.whenReady().then(async () => {
   }
 
   // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // ipcMain.on('ping', () => console.log('pong'))
 
   // Window controls
   ipcMain.on('window:minimize', (event) => {
@@ -261,10 +266,12 @@ app.whenReady().then(async () => {
                     anilistId: result.anilistId,
                     type: 'tv', // Anime is usually treated as TV in our flow for episodes
                     title:
-                      result.title.romaji ||
                       result.title.english ||
+                      result.title.romaji ||
                       result.title.native ||
                       metadata.title,
+                    fallbackTitle:
+                      result.title.english && result.title.romaji ? result.title.romaji : undefined,
                     year: result.year ?? undefined,
                     isAnime: true
                   }
@@ -333,7 +340,6 @@ app.whenReady().then(async () => {
           enrichedMetadata.title = t.romaji || t.english || t.native || metadata.title
         }
 
-
         // Clean title for better search results (remove "Season X" suffixes)
         if (enrichedMetadata.title && typeof enrichedMetadata.title === 'string') {
           // Only clean if it's a TV show/Anime or has season info
@@ -393,7 +399,7 @@ app.whenReady().then(async () => {
     ) => {
       console.log('Downloading subtitle:', url, 'to', destination)
 
-      const tempPath = join(os.tmpdir(), `tarjem_dl_${Date.now()}`)
+      const tempPath = join(os.tmpdir(), `tarjem_dl_${Date.now()}.zip`)
       let downloadUrl = ''
 
       try {
@@ -448,66 +454,140 @@ app.whenReady().then(async () => {
           }
         }
 
+        let isDefinitelyZip = false
+
+        // [NEW] Smart Download Handling: Check if URL clearly indicates a subtitle file
+        const isDirectSubtitleUrl = /\.(srt|ass|vtt|ssa|sub)$/i.test(downloadUrl)
+
+        // [NEW] Buffer Validation: Check if the file is a valid ZIP
+        let isZipBuffer = false
         try {
-          // If skip extraction is requested, just move generic temp file to destination
-          if (options?.skipExtraction) {
-             console.log('Skipping extraction as requested')
-             
-             let finalDestination = destination
-             const destExt = extname(destination).toLowerCase()
-             
-             // If destination has no extension, try to detect one
-             if (!destExt || destExt === '.') {
-                 let detectedExt = ''
-                 
-                 // 1. Try Content-Disposition
-                 if (downloadResult && typeof downloadResult === 'object' && downloadResult.headers) {
-                     const disposition = downloadResult.headers['content-disposition']
-                     if (disposition) {
-                         const filenameMatch = disposition.match(/filename="?([^"]+)"?/)
-                         if (filenameMatch && filenameMatch[1]) {
-                             detectedExt = extname(filenameMatch[1]).toLowerCase()
-                             console.log('[DEBUG] Detected extension from Content-Disposition:', detectedExt)
-                         }
-                     }
-                     
-                     // 2. Try Content-Type if still unknown
-                     if (!detectedExt) {
-                         const contentType = downloadResult.headers['content-type']
-                         if (contentType) {
-                             if (contentType.includes('application/zip') || contentType.includes('application/x-zip-compressed')) detectedExt = '.zip'
-                             else if (contentType.includes('text/plain') || contentType.includes('application/x-subrip')) detectedExt = '.srt' // Guessing
-                             else if (contentType.includes('application/x-ass')) detectedExt = '.ass'
-                         }
-                     }
-                 }
+          const fd = fs.openSync(tempPath, 'r')
+          const buffer = Buffer.alloc(4)
+          fs.readSync(fd, buffer, 0, 4, 0)
+          fs.closeSync(fd)
 
-                 // 3. Fallback to URL extension or default .zip
-                 if (!detectedExt) {
-                     detectedExt = extname(downloadUrl).toLowerCase() || '.zip'
-                 }
+          const hexSignature = buffer.toString('hex')
+          if (
+            hexSignature === '504b0304' ||
+            hexSignature === '504b0506' ||
+            hexSignature === '504b0708'
+          ) {
+            isZipBuffer = true
+          }
+        } catch (err) {
+          console.error('[Extraction] Failed to read downloaded buffer signature:', err)
+        }
+        console.log(
+          `[Extraction] Buffer signature indicates ZIP: ${isZipBuffer}, Direct URL: ${isDirectSubtitleUrl}`
+        )
 
-                 finalDestination = destination + detectedExt
-                 console.log(`[DEBUG] Added extension to destination: ${destination} -> ${finalDestination}`)
-             }
+        try {
+          // If skip extraction is requested, OR it's clearly a direct subtitle URL, OR the buffer is NOT a ZIP
+          if (options?.skipExtraction || isDirectSubtitleUrl || !isZipBuffer) {
+            console.log('Skipping extraction (either requested, direct URL, or not a ZIP buffer)')
 
-             // Ensure destination directory exists
-             const destDir = dirname(finalDestination)
-             if (!fs.existsSync(destDir)) {
-                fs.mkdirSync(destDir, { recursive: true })
-             }
+            let finalDestination = destination
+            const destExt = extname(destination).toLowerCase()
 
-             fs.copyFileSync(tempPath, finalDestination)
-             cleanupTemp()
-             return {
-                path: finalDestination,
-                wasZip: false // Treated as single file (even if zip)
-             }
+            // If destination has no extension, try to detect one
+            if (!destExt || destExt === '.') {
+              let detectedExt = ''
+
+              // 1. Check if it's a direct url first
+              if (isDirectSubtitleUrl) {
+                const match = downloadUrl.match(/\.(srt|ass|vtt|ssa|sub)$/i)
+                if (match) detectedExt = match[0].toLowerCase()
+              }
+
+              // 2. Try Content-Disposition
+              if (
+                !detectedExt &&
+                downloadResult &&
+                typeof downloadResult === 'object' &&
+                downloadResult.headers
+              ) {
+                const disposition = downloadResult.headers['content-disposition']
+                if (disposition) {
+                  const filenameMatch = disposition.match(/filename="?([^"]+)"?/)
+                  if (filenameMatch && filenameMatch[1]) {
+                    detectedExt = extname(filenameMatch[1]).toLowerCase()
+                    console.log('[DEBUG] Detected extension from Content-Disposition:', detectedExt)
+                  }
+                }
+
+                // 3. Try Content-Type if still unknown
+                if (!detectedExt) {
+                  const contentType = downloadResult.headers['content-type']
+                  if (contentType) {
+                    if (
+                      contentType.includes('application/zip') ||
+                      contentType.includes('application/x-zip-compressed')
+                    )
+                      detectedExt = '.zip'
+                    else if (
+                      contentType.includes('text/plain') ||
+                      contentType.includes('application/x-subrip')
+                    )
+                      detectedExt = '.srt' // Guessing
+                    else if (contentType.includes('application/x-ass')) detectedExt = '.ass'
+                  }
+                }
+              }
+
+              // 4. Fallback to URL extension — but only if buffer matches the extension type
+              // If the URL says .zip but the buffer is NOT a zip, do NOT save as .zip
+              if (!detectedExt) {
+                const urlExt = extname(downloadUrl).toLowerCase()
+                if (urlExt && urlExt !== '.zip') {
+                  detectedExt = urlExt
+                } else if (urlExt === '.zip' && !isZipBuffer) {
+                  // URL claims zip but buffer says otherwise — treat as raw subtitle
+                  detectedExt = '.srt'
+                } else if (urlExt === '.zip' && isZipBuffer) {
+                  detectedExt = '.zip'
+                }
+              }
+              // Ultimate fallback
+              if (!detectedExt) {
+                detectedExt = isZipBuffer ? '.zip' : '.srt'
+              }
+
+              finalDestination = destination + detectedExt
+              console.log(
+                `[DEBUG] Added extension to destination: ${destination} -> ${finalDestination}`
+              )
+            }
+
+            // Ensure destination directory exists
+            const destDir = dirname(finalDestination)
+            if (!fs.existsSync(destDir)) {
+              fs.mkdirSync(destDir, { recursive: true })
+            }
+
+            fs.copyFileSync(tempPath, finalDestination)
+            cleanupTemp()
+            return {
+              path: finalDestination,
+              wasZip: false // Treated as single file (even if zip)
+            }
           }
 
           // Try to open as ZIP
-          const zip = new AdmZip(tempPath)
-          const zipEntries = zip.getEntries()
+          let zip: any
+          let zipEntries: any[] = []
+          try {
+            zip = new AdmZip(tempPath)
+            zipEntries = zip.getEntries()
+            if (zipEntries.length > 0) {
+              isDefinitelyZip = true
+            }
+          } catch (e) {
+            // Not a valid zip, will fall out of the outer try-catch and handle as single file later
+            // But wait, we are INSIDE the try-catch for zip.
+            // We should throw here to trigger the fallback, UNLESS we want to handle extraction errors differently.
+            throw e
+          }
 
           if (zipEntries.length === 0) {
             throw new Error(
@@ -515,131 +595,39 @@ app.whenReady().then(async () => {
             )
           }
 
-          // Helper to check if file matches requested episode
-          const isMatchingEpisode = (filename: string): boolean => {
-            if (!options?.startSeason || !options?.startEpisode) return false
-            // Use the main filename parser to check internal files
-            const parsed = parseMediaFilename(filename)
-            return parsed.season === options.startSeason && parsed.episode === options.startEpisode
-          }
-
-          const validExtensions = ['.srt', '.ass', '.ssa', '.vtt', '.sub', '.idx']
-
-          // Find best subtitle file
-          // 1. Exact Season/Episode match
-          let subtitleEntry = zipEntries.find((entry) => {
-            const lowerName = entry.entryName.toLowerCase()
-            return (
-              validExtensions.some((ext) => lowerName.endsWith(ext)) &&
-              isMatchingEpisode(entry.entryName)
-            )
+          // --- Centralized episode matching via SubtitleMatcher waterfall ---
+          // Passes: Anitomy → Guessit → Strict Regex (never matches year digits).
+          // If only 1 subtitle in zip → used directly. If no match → throws.
+          const isAnime = !!(options as any)?.isAnime
+          let subtitleEntry = await findEpisodeInZip(zipEntries, {
+            season: options?.startSeason,
+            episode: options?.startEpisode,
+            isAnime
           })
 
-          if (subtitleEntry) {
-            console.log(`Found matching episode in ZIP: ${subtitleEntry.entryName}`)
-          } else {
-            console.log('No exact episode match in ZIP, checking for generic/single files...')
-            // 2. Fallback: find any valid subtitle file
-            // But REJECT files that have a DIFFERENT season than requested
-            
-            // Refine requested Season/Episode using videoFilename if available (and if startEpisode is missing)
-            let requestedSeason = options?.startSeason || 1
-            let requestedEpisode = options?.startEpisode
-
-            if (requestedEpisode === undefined && options?.videoFilename) {
-               console.log('[DEBUG] startEpisode missing, attempting to parse videoFilename:', options.videoFilename)
-               const videoParsed = parseMediaFilename(options.videoFilename)
-               if (videoParsed.episode !== undefined) {
-                 requestedEpisode = videoParsed.episode
-                 console.log('[DEBUG] Extracted episode from videoFilename:', requestedEpisode)
-               }
-               if (videoParsed.season !== undefined) {
-                 requestedSeason = videoParsed.season
-                 console.log('[DEBUG] Extracted season from videoFilename:', requestedSeason)
-               }
-            }
-
-            console.log(`[DEBUG] requestedSeason=${requestedSeason}, requestedEpisode=${requestedEpisode}`)
-
-            const isSeasonCompatible = (filename: string): boolean => {
-              const parsed = parseMediaFilename(filename)
-              // If the subtitle has a season marker and it doesn't match, reject it
-              if (parsed.season !== undefined && parsed.season !== requestedSeason) {
-                console.log(
-                  `Rejecting ${filename} (S${parsed.season}) - requested S${requestedSeason}`
-                )
-                return false
-              }
-              return true
-            }
-
-            // NEW: Episode matching for fallback
-            const isEpisodeCompatible = (filename: string): boolean => {
-              if (requestedEpisode === undefined) return true // No specific episode, accept all
-              const parsed = parseMediaFilename(filename)
-              // If subtitle has episode and it matches, accept it
-              // If subtitle has no episode, accept it (might be a single-file or pack)
-              if (parsed.episode === undefined) return true
-              return parsed.episode === requestedEpisode
-            }
-
-            // DEBUG: List all .ass entries with their parsed episode numbers
-            // const assEntries = zipEntries.filter((e) => e.entryName.toLowerCase().endsWith('.ass'))
-            // console.log(`[DEBUG] ZIP contains ${assEntries.length} .ass files:`)
-            // assEntries.slice(0, 10).forEach((e) => {
-            //   const parsed = parseMediaFilename(e.entryName)
-            //   console.log(`  - ${e.entryName} -> Episode: ${parsed.episode}`)
-            // })
-
-            // Priority 1: Try to find files matching BOTH season AND episode
-            subtitleEntry = zipEntries.find(
-              (entry) =>
-                entry.entryName.toLowerCase().endsWith('.srt') &&
-                isSeasonCompatible(entry.entryName) &&
-                isEpisodeCompatible(entry.entryName)
+          // If no episode match and episode IS specified → try to derive from videoFilename
+          if (subtitleEntry === null && options?.startEpisode === undefined && options?.videoFilename) {
+            console.log('[Extraction] No episode in options, deriving from videoFilename...')
+            const parserMode = (store?.get('parser_mode') ?? 'tv') as ParserMode
+            const folderName = basename(dirname(options.videoFilename))
+            const videoParsed = await parseMediaFilenameDispatcher(
+              basename(options.videoFilename),
+              folderName,
+              parserMode
             )
-
-            if (!subtitleEntry) {
-              subtitleEntry = zipEntries.find(
-                (entry) =>
-                  entry.entryName.toLowerCase().endsWith('.ass') &&
-                  isSeasonCompatible(entry.entryName) &&
-                  isEpisodeCompatible(entry.entryName)
-              )
-            }
-
-            if (!subtitleEntry) {
-              subtitleEntry = zipEntries.find((entry) => {
-                const lowerName = entry.entryName.toLowerCase()
-                return (
-                  validExtensions.some((ext) => lowerName.endsWith(ext)) &&
-                  isSeasonCompatible(entry.entryName) &&
-                  isEpisodeCompatible(entry.entryName)
-                )
+            if (videoParsed.episode !== undefined || videoParsed.season !== undefined) {
+              subtitleEntry = await findEpisodeInZip(zipEntries, {
+                season: videoParsed.season ?? options?.startSeason,
+                episode: videoParsed.episode,
+                isAnime
               })
             }
+          }
 
-            // Priority 2: If no episode match found...
-            // If requestedEpisode is undefined (batch/pack), and we haven't found a match yet,
-            // just pick the FIRST valid subtitle file we found (from the earlier filtering).
-            if (!subtitleEntry && requestedEpisode === undefined) {
-               const anySub = zipEntries.find(e => validExtensions.some(ext => e.entryName.toLowerCase().endsWith(ext)));
-               if (anySub) {
-                 console.log('No specific episode requested, picking first subtitle found:', anySub.entryName)
-                 subtitleEntry = anySub
-               }
-            }
-
-            if (!subtitleEntry) {
-              console.log('No episode match found in ZIP, rejecting to try next candidate...')
-              // Clean up the zip file before throwing
-              try {
-                if (fs.existsSync(destination)) fs.unlinkSync(destination)
-              } catch {
-                // ignore
-              }
-              throw new Error(`No episode ${options?.startEpisode || 'N/A'} found in ZIP archive`)
-            }
+          // If we still have no match — log and throw to try next subtitle candidate
+          if (subtitleEntry === null) {
+            console.log('[Extraction] No subtitle match found in ZIP, trying next candidate...')
+            throw new Error(`No episode ${options?.startEpisode ?? 'N/A'} found in ZIP archive`)
           }
 
           if (subtitleEntry) {
@@ -683,14 +671,14 @@ app.whenReady().then(async () => {
               fs.rmSync(extractDir, { recursive: true, force: true })
             } catch {}
             cleanupTemp()
-            
+
             // Validate output file is not the ZIP
             try {
-               const stat = fs.statSync(destination);
-               if (stat.size === fs.statSync(tempPath).size && extname(destination) === '.zip') {
-                  // Should not happen, but sanity check
-                  throw new Error('Verification failed: Destination is still the ZIP file');
-               }
+              const stat = fs.statSync(destination)
+              if (stat.size === fs.statSync(tempPath).size && extname(destination) === '.zip') {
+                // Should not happen, but sanity check
+                throw new Error('Verification failed: Destination is still the ZIP file')
+              }
             } catch (e) {}
 
             return {
@@ -700,43 +688,52 @@ app.whenReady().then(async () => {
               extractedFilename: subtitleEntry.entryName
             }
           }
-          
+
           // Should be unreachable due to check above, but for safety:
           throw new Error('No valid subtitle file found inside the downloaded ZIP archive.')
-
         } catch (zipError: unknown) {
           const errMsg = zipError instanceof Error ? zipError.message : String(zipError)
           console.log('ZIP Extraction Error:', errMsg)
-          
-          // CRITICAL: If we successfully opened as ZIP (entries > 0) but failed to find sub,
-          // OR if extraction failed, we MUST FAIL. Do not fallback to copying the ZIP.
-          // The fallback below is ONLY for when AdmZip fails to parse (i.e. not a zip).
-          
-          // If the error message indicates we looked inside and failed, re-throw.
+
+          // CRITICAL: If the hex buffer check confirmed this was a ZIP (isZipBuffer=true),
+          // or if we successfully opened it (isDefinitelyZip=true), we MUST throw.
+          // Never silently fallthrough to copyFileSync for something declared as a ZIP.
+          // Fallthrough is ONLY for content that was never a ZIP in the first place.
           if (
+            isDefinitelyZip ||
+            isZipBuffer ||
             errMsg.includes('No valid subtitle') ||
             errMsg.includes('empty or invalid') ||
             errMsg.includes('found in ZIP archive') ||
             errMsg.includes('Verification failed')
           ) {
-            throw zipError
+            throw new Error(
+              `Failed to extract subtitle from ZIP (corrupt or empty download): ${errMsg}`
+            )
           }
-          
-          // If we are here, AdmZip might have failed to parse headers (invalid zip).
-          // Fallthrough to treat as single file.
+
+          // If we are here, AdmZip failed AND buffer check said it wasn't a ZIP.
+          // Fallthrough to treat it as a raw subtitle file.
+          console.log('[Extraction] Not a ZIP buffer - treating downloaded file as raw subtitle.')
         }
 
-        // Move temp file to destination (if not already handled by zip extraction)
-        // Ensure destination directory exists
+        // Last resort: move temp file to destination as-is.
+        // This only runs if buffer check said NOT a zip AND AdmZip also failed.
         const destDir = dirname(destination)
         if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true })
 
-        fs.copyFileSync(tempPath, destination)
+        // Give it a .srt extension if destination has none, since we believe it's raw text
+        let rawDestination = destination
+        if (!extname(destination)) {
+          rawDestination = destination + '.srt'
+        }
+
+        fs.copyFileSync(tempPath, rawDestination)
         cleanupTemp()
 
         return {
-          path: destination,
-          originalFilename: options?.filename || basename(destination),
+          path: rawDestination,
+          originalFilename: options?.filename || basename(rawDestination),
           wasZip: false
         }
       } catch (error) {
@@ -784,6 +781,21 @@ app.whenReady().then(async () => {
         throw new Error('Missing arguments for merge')
       }
 
+      // FFmpeg Guard: Verify input files exist and subtitle is not empty
+      if (!fs.existsSync(videoPath)) {
+        throw new Error(`Video file does not exist: ${videoPath}`)
+      }
+      if (!fs.existsSync(subtitlePath)) {
+        throw new Error(`Subtitle file does not exist: ${subtitlePath}`)
+      }
+
+      const subStat = fs.statSync(subtitlePath)
+      if (subStat.size < 500) {
+        throw new Error(
+          `Subtitle file is too small (${subStat.size} bytes), rejecting merge: ${subtitlePath}`
+        )
+      }
+
       console.log('Starting merge process...')
       console.log('Video:', videoPath)
       console.log('Subtitle:', subtitlePath)
@@ -810,6 +822,16 @@ app.whenReady().then(async () => {
     }
   })
 
+  // Alass subtitle sync
+  ipcMain.handle('alass:sync', async (_event, options) => {
+    const { videoPath, inputSubPath, outputSubPath } = options
+    if (!videoPath || !inputSubPath || !outputSubPath) {
+      throw new Error('[Alass] Missing required arguments: videoPath, inputSubPath, outputSubPath')
+    }
+    await syncSubtitle(videoPath, inputSubPath, outputSubPath)
+    return { success: true, path: outputSubPath }
+  })
+
   // Settings
   ipcMain.handle('settings:get', (_event, key) => {
     return store?.get(key)
@@ -821,8 +843,9 @@ app.whenReady().then(async () => {
   })
 
   // Utility handlers
-  ipcMain.handle('utils:parseFilename', (_event, filename) => {
-    return parseMediaFilename(filename)
+  ipcMain.handle('utils:parseFilename', async (_event, filename, folderName) => {
+    const parserMode = (store?.get('parser_mode') ?? 'tv') as ParserMode
+    return parseMediaFilenameDispatcher(basename(filename), folderName, parserMode)
   })
 
   ipcMain.handle('utils:deleteFile', async (_event, filePath) => {

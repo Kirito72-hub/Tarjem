@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { similarity } from '../utils/levenshtein'
 
 interface AniListSearchResult {
   anilistId: number
@@ -148,5 +149,41 @@ export class AniListService {
     }
 
     return results
+  }
+
+  /**
+   * Verify that a parsed title matches an AniList entry (≥80% similarity).
+   * Used by the parser waterfall to confirm a parser's output.
+   *
+   * @param parsedTitle - The title extracted by a parser
+   * @returns Verification result with matched canonical title if verified
+   */
+  async verifyTitle(
+    parsedTitle: string
+  ): Promise<{ verified: boolean; canonicalTitle: string | null }> {
+    if (!parsedTitle || parsedTitle.trim().length < 2) {
+      return { verified: false, canonicalTitle: null }
+    }
+
+    const result = await this.searchByTitle(parsedTitle)
+    if (!result) return { verified: false, canonicalTitle: null }
+
+    const THRESHOLD = 0.8
+    const romajiSim = similarity(parsedTitle, result.title.romaji)
+    const englishSim = result.title.english ? similarity(parsedTitle, result.title.english) : 0
+
+    const bestSim = Math.max(romajiSim, englishSim)
+
+    // Always prioritize English title for provider searches, fallback to romaji
+    const canonicalTitle = result.title.english ? result.title.english : result.title.romaji
+
+    console.log(
+      `[AniList] verifyTitle("${parsedTitle}") → romaji="${result.title.romaji}" sim=${(romajiSim * 100).toFixed(0)}%, english="${result.title.english}" sim=${(englishSim * 100).toFixed(0)}% → ${bestSim >= THRESHOLD ? 'VERIFIED' : 'FAILED'}`
+    )
+
+    return {
+      verified: bestSim >= THRESHOLD,
+      canonicalTitle: bestSim >= THRESHOLD ? canonicalTitle : null
+    }
   }
 }

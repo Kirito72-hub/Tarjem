@@ -14,8 +14,23 @@ export class OpenSubtitlesAdapter implements SubtitleProvider {
     language: string
   ): Promise<SubtitleResult[]> {
     try {
-      // Use metadata if available, otherwise just query
-      const results = await this.service.search(query, language, metadata.imdbId)
+      // String Sanitization. Prioritize canonical English title if mapped.
+      const primaryTitle = (metadata as any).canonicalTitle || metadata.title || query
+      const sanitizedQuery = primaryTitle.replace(/[-_]+$/, '').trim()
+      let results = await this.service.search(sanitizedQuery, language, metadata.imdbId)
+
+      // Fallback Search using raw query or fallbackTitle
+      if (
+        (!results || !results.data || results.data.length === 0) &&
+        (metadata.fallbackTitle || query !== primaryTitle)
+      ) {
+        const fallback = (metadata.fallbackTitle || query).replace(/[-_]+$/, '').trim()
+        console.log(
+          `[OpenSubtitlesAdapter] No results for "${sanitizedQuery}", falling back to "${fallback}"`
+        )
+        results = await this.service.search(fallback, language, metadata.imdbId)
+      }
+
       return results?.data || []
     } catch (e) {
       console.error('[OpenSubtitlesAdapter] Search Error:', e)
@@ -52,16 +67,33 @@ export class SubDLAdapter implements SubtitleProvider {
     language: string
   ): Promise<SubtitleResult[]> {
     try {
+      // String Sanitization. Prioritize canonical English title if mapped.
+      const primaryTitle = (metadata as any).canonicalTitle || metadata.title || query
+      const sanitizedQuery = primaryTitle.replace(/[-_]+$/, '').trim()
+
       const params: any = {
-        query: metadata.title || query,
+        query: sanitizedQuery,
         language,
         type: metadata.type || 'movie',
-        startSeason: metadata.season,
-        startEpisode: metadata.episode,
+        startSeason: metadata.season ? Math.floor(metadata.season) : undefined,
+        startEpisode: metadata.episode ? Math.floor(metadata.episode) : undefined,
         imdbId: metadata.imdbId,
         tmdbId: metadata.tmdbId
       }
-      const res = await this.service.search(params)
+
+      let res = await this.service.search(params)
+
+      // Fallback Search
+      if (
+        (!res || !res.results || res.results.length === 0) &&
+        (metadata.fallbackTitle || query !== primaryTitle)
+      ) {
+        const fallback = (metadata.fallbackTitle || query).replace(/[-_]+$/, '').trim()
+        console.log(
+          `[SubDLAdapter] No results for query "${sanitizedQuery}", falling back to "${fallback}"`
+        )
+        res = await this.service.search({ ...params, query: fallback })
+      }
       return res?.results || []
     } catch (e) {
       console.error('[SubDLAdapter] Search Error:', e)

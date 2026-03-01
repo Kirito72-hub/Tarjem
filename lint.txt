@@ -1,0 +1,258 @@
+﻿
+> tarjem@3.0.0-beta lint
+> eslint --cache .
+
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\debug_parser_2.js
+  1:32  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\inspect_subsource.js
+  1:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\index.ts
+  242:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  245:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  338:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  361:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  448:32  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  526:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  527:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  528:11  error  Unnecessary try/catch wrapper             no-useless-catch
+  733:21  error  Empty block statement                     no-empty
+  743:22  error  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  743:25  error  Empty block statement                     no-empty
+  797:17  error  Empty block statement                     no-empty
+  810:18  error  A `require()` style import is forbidden   @typescript-eslint/no-require-imports
+  901:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\anitomy.service.ts
+  19:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\downloader.ts
+  10:3  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\ffmpeg.ts
+  13:3   error  Missing return type on function       @typescript-eslint/explicit-function-return-type
+  45:42  error  '_formats' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\guessit.service.ts
+  55:39  error  Unnecessary escape character: \[  no-useless-escape
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\hashCalculator.ts
+  20:53  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\metadataApi.ts
+   52:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   55:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\metadataCache.ts
+  10:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\omdbApi.ts
+  35:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\providerRegistry.ts
+    6:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    8:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   12:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   41:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   41:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:18  error  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\providers\adapters.ts
+  69:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\providers\subSource.ts
+   34:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   35:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  151:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  240:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  249:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  398:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  420:22  error  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  494:20  error  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  494:23  error  Empty block statement                     no-empty
+  511:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\main\services\subtitleApi.ts
+    5:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    7:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   24:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   25:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   43:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   76:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   83:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  151:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  224:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  226:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  237:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  245:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  306:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  316:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  351:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  362:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  466:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  519:47  error  Empty block statement                     no-empty
+  524:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  540:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  556:3   error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\preload\index.ts
+  22:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\App.tsx
+    38:35  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+    74:42  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+    82:50  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+    83:38  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   103:72  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   111:34  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   118:60  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   136:23  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   191:35  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   243:49  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   277:53  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   299:18  error  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+   358:91  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   443:21  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   461:47  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   466:32  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   473:38  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   478:37  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   484:41  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   498:37  error  '_options' is defined but never used          @typescript-eslint/no-unused-vars
+   498:61  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+   630:32  error  Unnecessary escape character: \[              no-useless-escape
+   630:34  error  Unnecessary escape character: \(              no-useless-escape
+   630:51  error  Unnecessary escape character: \)              no-useless-escape
+   803:68  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+  1022:37  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  1131:35  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  1166:21  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  1291:21  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  1307:29  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+  1312:28  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+  1315:9   error  Unexpected lexical declaration in case block  no-case-declarations
+  1346:69  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+  1379:60  error  Missing return type on function               @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\Dashboard.tsx
+   68:69  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   73:43  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   81:47  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   86:51  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  110:26  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\EpisodeCard.tsx
+  33:51  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\FileDropZone.tsx
+  18:47  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  23:48  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  28:43  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  38:69  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  45:26  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\LanguageDropdown.tsx
+  18:4   error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  38:41  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  51:52  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\LogsView.tsx
+  19:37  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  28:35  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  37:56  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  52:47  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\MergeOptionsModal.tsx
+  27:50  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\ProgressBar.tsx
+  10:29  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\SettingsView.tsx
+   25:35  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   60:43  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   69:52  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   75:70  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   81:75  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   87:75  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   93:73  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+   99:77  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  105:72  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  112:52  error  Missing return type on function           @typescript-eslint/explicit-function-return-type
+  357:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  386:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  412:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  441:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\SubtitleSourcesModal.tsx
+  32:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\SubtitleSourcesModal.tsx:32:7
+  30 |   useEffect(() => {
+  31 |     if (isOpen) {
+> 32 |       setLocalSources(sources)
+     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  33 |       // Load saved parser mode from settings
+  34 |       if (window.api?.settings) {
+  35 |         window.api.settings.get('parser_mode').then((val) => {  react-hooks/set-state-in-effect
+  44:37  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  48:25  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  53:51  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  59:63  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  64:62  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  70:30  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  74:58  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+  90:28  error  Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\components\TitleBar.tsx
+  29:29  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  31:29  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  33:26  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\renderer\src\env.d.ts
+  4:8  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\src\types\index.ts
+   74:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Ahmed Saudi\Documents\vsCodeProjects\Tarjem\Tarjem\test-electron.js
+   8:19  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  23:21  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Γ£û 176 problems (176 errors, 0 warnings)
+

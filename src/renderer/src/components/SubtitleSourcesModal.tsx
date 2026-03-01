@@ -24,11 +24,19 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
   const [isLangOpen, setIsLangOpen] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [parserMode, setParserMode] = useState<'anime' | 'tv'>('tv')
 
   // Reset local state when modal opens or parent sources change
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalSources(sources)
+      // Load saved parser mode from settings
+      if (window.api?.settings) {
+        window.api.settings.get('parser_mode').then((val) => {
+          if (val === 'anime' || val === 'tv') setParserMode(val)
+        })
+      }
     }
   }, [isOpen, sources])
 
@@ -41,6 +49,11 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
   const handleSave = () => {
     onSave(localSources)
     onClose()
+  }
+
+  const handleParserMode = (mode: 'anime' | 'tv') => {
+    setParserMode(mode)
+    window.api.settings.set('parser_mode', mode)
   }
 
   // Drag and drop handlers
@@ -88,7 +101,7 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
         {/* Header */}
         <div className="h-14 bg-[#161B22] border-b border-white/5 flex items-center justify-between px-5 select-none">
           <div>
-            <h3 className="text-sm font-semibold text-white">Subtitle Sources</h3>
+            <h3 className="text-sm font-semibold text-white">Subtitle Source Settings</h3>
             <p className="text-xs text-gray-500">Drag to reorder priority</p>
           </div>
           <button
@@ -100,9 +113,9 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-2 overflow-y-auto max-h-[400px]">
+        <div className="overflow-y-auto max-h-[480px]">
           {/* Language Selector */}
-          <div className="px-4 py-3 border-b border-white/5 mb-2">
+          <div className="px-4 py-3 border-b border-white/5">
             <LanguageDropdown
               label="Search Language"
               selectedCode={currentLanguage}
@@ -112,7 +125,42 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
             />
           </div>
 
-          <div className="space-y-1">
+          {/* Parser Mode Toggle */}
+          <div className="px-4 py-3 border-b border-white/5">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+              Auto Match Mode
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleParserMode('tv')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                  parserMode === 'tv'
+                    ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
+                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
+                }`}
+              >
+                📺 TV
+              </button>
+              <button
+                onClick={() => handleParserMode('anime')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                  parserMode === 'anime'
+                    ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
+                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
+                }`}
+              >
+                🎌 Anime
+              </button>
+            </div>
+            <p className="text-xs text-gray-600 mt-1.5">
+              {parserMode === 'anime'
+                ? 'Anime: 3-pass waterfall verified against AniList'
+                : 'TV: Fast guessit parsing, no AniList calls'}
+            </p>
+          </div>
+
+          {/* Sources List */}
+          <div className="space-y-1 p-2">
             {localSources.map((source, index) => (
               <div
                 key={source.id}

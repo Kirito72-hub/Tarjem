@@ -5,10 +5,10 @@ This update brings a **major improvement** to subtitle matching accuracy with an
 ## ✨ New Features
 
 ### 🎯 Advanced Subtitle Matching Algorithm
+
 - **Levenshtein Distance** - Fuzzy string matching handles typos and variations
   - Example: "Chain Saw Man" vs "Chainsaw Man" → 95% similarity match ✅
   - Example: "Vivy Fluorite Eyes Song" vs "Vivy - Fluorite Eye's Song" → High similarity ✅
-  
 - **Multi-Factor Scoring System** (max ~215 points):
   - Episode Number Match: 100 points (exact match required)
   - Title Similarity: 0-50 points (fuzzy matching with Levenshtein distance)
@@ -37,6 +37,7 @@ This update brings a **major improvement** to subtitle matching accuracy with an
   - Identify best match with confidence level
 
 ### 🧹 Better Title Normalization
+
 - Removes articles (the, a, an)
 - Normalizes separators (dots, dashes, underscores)
 - Case-insensitive comparison
@@ -58,10 +59,12 @@ This update brings a **major improvement** to subtitle matching accuracy with an
 ## 📊 Example Matching
 
 **Before (v1.0.0):**
+
 - Video: `Chainsaw Man - 06.mkv`
 - ❌ Might match: `Chainsaw Man The Movie.srt` (wrong!)
 
 **After (v1.0.1):**
+
 - Video: `Chainsaw Man - 06.mkv`
 - ✅ Matches: `Chainsaw Man - 06.srt` (score: 180)
 - ❌ Rejects: `Chainsaw Man The Movie.srt` (score: 0, no episode)

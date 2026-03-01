@@ -147,10 +147,10 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = ({
             </h3>
             {/* If IDLE or Review or Subtitle, show status message. Else show progress bar */}
             {episode.stage === ProcessingStage.IDLE ||
-              episode.stage === ProcessingStage.REVIEW ||
-              episode.stage === ProcessingStage.NOT_FOUND ||
-              episode.stage === ProcessingStage.ERROR ||
-              isSubtitle ? (
+            episode.stage === ProcessingStage.REVIEW ||
+            episode.stage === ProcessingStage.NOT_FOUND ||
+            episode.stage === ProcessingStage.ERROR ||
+            isSubtitle ? (
               <div className="text-xs text-gray-600 mt-1">{episode.statusMessage}</div>
             ) : (
               <div className="w-full max-w-[200px] h-1 bg-gray-800 rounded-full mt-2 overflow-hidden">

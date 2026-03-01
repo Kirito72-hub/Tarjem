@@ -1,4 +1,4 @@
-```typescript
+;```typescript
 import { ElectronAPI } from '../types'
 
 declare global {
