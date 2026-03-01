@@ -639,13 +639,62 @@ const App: React.FC = () => {
 
 
 
-  // Returns subtitle candidates in API order (the API already ranked by quality/downloads).
-  // Only pre-skips results whose filename explicitly shows a WRONG episode number.
-  // Season packs (no episode in filename) always pass — the waterfall extracts the right ep.
+  // ── syncScore Helpers ──────────────────────────────────────────────────────
+  // Source equivalence groups: any term in the same group matches any other.
+  const SOURCE_GROUPS: string[][] = [
+    ['web', 'web-dl', 'webdl', 'webrip'],
+    ['bd', 'bdrip', 'bluray', 'blu-ray']
+  ]
+
+  /**
+   * Compute a syncScore for a subtitle candidate based on how closely its
+   * filename / release name matches the video's release metadata.
+   *
+   * Scoring:
+   *   +50  exact release-group match (e.g. "Erai-raws")
+   *   +20  source match within an equivalence group (WEB ≡ WEB-DL ≡ WEBRip,
+   *         BD ≡ BDRip ≡ BluRay)
+   *   +10  resolution match (e.g. "1080p", "720p")
+   */
+  const computeSyncScore = (
+    subtitle: SubtitleResult,
+    releaseGroup: string | undefined,
+    videoSource: string | undefined,
+    resolution: string | undefined
+  ): number => {
+    const haystack = `${subtitle.filename} ${subtitle.caption ?? ''}`.toLowerCase()
+    let score = 0
+
+    // +50 — release group match
+    if (releaseGroup && releaseGroup.trim().length > 0) {
+      const groupRx = new RegExp(`\\b${releaseGroup.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+      if (groupRx.test(haystack)) score += 50
+    }
+
+    // +20 — source match (equivalence groups)
+    if (videoSource && videoSource.trim().length > 0) {
+      const normSource = videoSource.toLowerCase().replace(/[\s-]/g, '')
+      const sourceGroup = SOURCE_GROUPS.find((g) => g.includes(normSource)) ?? [normSource]
+      const sourceRx = new RegExp(sourceGroup.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i')
+      if (sourceRx.test(haystack)) score += 20
+    }
+
+    // +10 — resolution match
+    if (resolution && resolution.trim().length > 0) {
+      const resRx = new RegExp(`\\b${resolution.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+      if (resRx.test(haystack)) score += 10
+    }
+
+    return score
+  }
+
+  // Returns subtitle candidates sorted by syncScore (release-metadata match) then
+  // filtered by wrong-episode check, finally sliced to maxCandidates.
   const getSortedCandidates = (
     results: SubtitleResult[],
     videoFilename: string,
-    maxCandidates: number = 10
+    maxCandidates: number = 10,
+    videoMeta?: { releaseGroup?: string; source?: string; resolution?: string }
   ): SubtitleResult[] => {
     if (!results || results.length === 0) return []
 
@@ -682,10 +731,27 @@ const App: React.FC = () => {
     let candidates = results.filter((r) => normaliseLang(r.language) === wantedLang)
     if (candidates.length === 0) candidates = results
 
-    // Step 2 — Pre-skip: drop only candidates whose filename explicitly contains a
-    // WRONG episode number. This avoids unnecessary downloads of clearly-wrong files
-    // (e.g. a subtitle labelled "Ep 03" when we want episode 6).
-    // If no episode is detected in the subtitle filename → keep it (likely a season pack).
+    // Step 2 — Compute syncScore and sort descending.
+    // Candidates with a release-group/source/resolution match bubble to the top.
+    if (videoMeta) {
+      candidates = candidates.map((c) => ({
+        ...c,
+        syncScore: computeSyncScore(c, videoMeta.releaseGroup, videoMeta.source, videoMeta.resolution)
+      }))
+      candidates.sort((a, b) => (b.syncScore ?? 0) - (a.syncScore ?? 0))
+
+      // Log top result for debugging
+      if (candidates.length > 0) {
+        const top = candidates[0]
+        console.log(
+          `[syncScore] Top candidate: "${top.filename}" score=${top.syncScore}`,
+          `(group="${videoMeta.releaseGroup}", src="${videoMeta.source}", res="${videoMeta.resolution}")`
+        )
+      }
+    }
+
+    // Step 3 — Pre-skip: drop only candidates whose filename explicitly contains a
+    // WRONG episode number. Season packs (no episode in filename) always pass.
     if (videoInfo.episode !== undefined) {
       const filtered = candidates.filter((subtitle) => {
         const subInfo = extractEpisodeInfo(subtitle.filename)
@@ -696,9 +762,10 @@ const App: React.FC = () => {
       if (filtered.length > 0) candidates = filtered
     }
 
-    // Step 3 — Return in API order (trust the provider's ranking), up to maxCandidates
+    // Step 4 — Return top maxCandidates
     return candidates.slice(0, maxCandidates)
   }
+
 
   const { createLog, addStep, updateStatus } = useLogStore()
 
@@ -757,6 +824,9 @@ const App: React.FC = () => {
         addStep(id, `Searching by hash (${subtitleLanguage})`, 'INFO')
 
         let results = await window.api.subtitles.searchByHash(hash, subtitleLanguage)
+        // parsedMetadata is populated in the fallback block; hoisted here so the
+        // getSortedCandidates call below can use it for syncScore sorting.
+        let parsedMetadata: any = null
         console.log('Hash Search results:', results ? results.length : 0)
 
         // Fallback to Text Search if Hash Search fails
@@ -764,8 +834,8 @@ const App: React.FC = () => {
           console.log('Hash search yielded no results. Falling back to text search...')
           addStep(id, 'Hash search failed, falling back to text search', 'WARNING')
 
-          // Parse filename to extract metadata (including isAnime flag)
-          const parsedMetadata = await window.api.utils.parseFilename(episode.filename)
+          // Parse filename to extract metadata (including isAnime flag, releaseGroup, source, resolution)
+          parsedMetadata = await window.api.utils.parseFilename(episode.filename)
           console.log('Parsed metadata:', parsedMetadata)
 
           const cleanedQuery = parsedMetadata.title || cleanFilename(episode.filename)
@@ -795,8 +865,16 @@ const App: React.FC = () => {
         if (results && results.length > 0) {
           console.log('Found', results.length, 'subtitle(s)')
 
-          // Get sorted candidates for retry logic (top 5)
-          const candidates = getSortedCandidates(results, episode.filename, 5)
+          // Get sorted candidates for retry logic (top 5).
+          // Pass video release metadata so syncScore can prefer same-group/source/res subtitles.
+          const videoMeta = parsedMetadata
+            ? {
+              releaseGroup: parsedMetadata.releaseGroup as string | undefined,
+              source: parsedMetadata.source as string | undefined,
+              resolution: parsedMetadata.resolution as string | undefined
+            }
+            : undefined
+          const candidates = getSortedCandidates(results, episode.filename, 5, videoMeta)
 
           if (candidates.length === 0) {
             console.log('No suitable subtitle found after filtering')

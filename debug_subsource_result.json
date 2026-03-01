@@ -1,19 +1,20 @@
 {
-  "subtitleId": 1405152,
-  "movieId": 10816,
+  "subtitleId": 2792050,
+  "movieId": 110789,
   "language": "arabic",
   "releaseInfo": [
-    "[eXtraTranz][KimSaraen]The.Town.Where.Only.I.Am.Missing.2016[Arabic][720p]"
+    "[Reaktor] Your Lie in April - Complete [1080p][x265][10-bit][Dual-Audio]",
+    "Your Lie in April [BD][1080p][HEVC 10bit x265][Dual Audio][Tenrai-Sensei]"
   ],
-  "commentary": "Bkoorsan",
+  "commentary": "ترجمة نتفليكس الأصلية للأنمي كامل + الحلقة الخاصة",
   "files": null,
   "size": null,
-  "hearingImpaired": true,
+  "hearingImpaired": false,
   "foreignParts": false,
   "framerate": null,
   "productionType": null,
   "releaseType": null,
-  "downloads": 4,
+  "downloads": 79,
   "comments": 0,
   "rating": {
     "good": 0,
@@ -21,13 +22,13 @@
     "total": 0
   },
   "preview": null,
-  "uploaderId": 983643,
+  "uploaderId": 1073051,
   "contributors": [
     {
-      "id": 983643,
-      "displayname": "Bkoorsan"
+      "id": 1073051,
+      "displayname": "SameerAbuRub"
     }
   ],
-  "link": "/subtitle/erased-2016/arabic/1405152",
-  "createdAt": "2016-09-15T21:45:00.000Z"
+  "link": "/subtitle/your-lie-in-april-season-1/arabic/2792050",
+  "createdAt": "2022-06-02T18:01:00.000Z"
 }

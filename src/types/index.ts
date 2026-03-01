@@ -36,6 +36,7 @@ export interface SubtitleResult {
   hi?: boolean
   subtitleType?: string
   caption?: string
+  syncScore?: number // Release-metadata match score; higher = better sync candidate
 }
 
 export interface DownloadResult {
