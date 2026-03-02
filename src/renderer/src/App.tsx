@@ -366,7 +366,7 @@ const App: React.FC = () => {
 
       if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
         // Use Export Path
-        const metadata = await window.api.utils.parseFilename(episode.filename)
+        const metadata = await window.api.utils.parseFilename(episode.path)
         const seriesName = metadata.title || 'Unsorted'
 
         // Clean filename for the subtitle (keep original name but change extension)
@@ -767,7 +767,7 @@ const App: React.FC = () => {
   }
 
 
-  const { createLog, addStep, updateStatus } = useLogStore()
+  const { createLog, addStep, updateStatus, setMetadata, setProviderResults, setSyncInfo } = useLogStore()
 
   const simulateProcessing = async (id: string, tab: DashboardTab) => {
     const setTargetEpisodes = tab === 'FILE_MATCH' ? setSearchEpisodes : setMergeEpisodes
@@ -781,7 +781,7 @@ const App: React.FC = () => {
     if (tab === 'FILE_MATCH') {
       // Real Hashing Logic
       console.log('Starting hash calculation for:', episode.path)
-      addStep(id, 'Calculating file hash...', 'INFO')
+      addStep(id, 'Calculating file hash...', 'INFO', undefined, 'TITLE')
 
       setSearchEpisodes((prev) =>
         prev.map((e) =>
@@ -804,7 +804,7 @@ const App: React.FC = () => {
       try {
         const hash = await window.api.hashing.calculateHash(episode.path)
         console.log('Hash calculated successfully:', hash)
-        addStep(id, `Hash calculated: ${hash.substring(0, 8)}...`, 'SUCCESS')
+        addStep(id, `Hash calculated: ${hash.substring(0, 8)}...`, 'SUCCESS', undefined, 'TITLE')
 
         setSearchEpisodes((prev) =>
           prev.map((e) =>
@@ -821,7 +821,7 @@ const App: React.FC = () => {
 
         // Real Search
         console.log('Searching for subtitles with hash:', hash, 'Language:', subtitleLanguage)
-        addStep(id, `Searching by hash (${subtitleLanguage})`, 'INFO')
+        addStep(id, `Searching by hash (${subtitleLanguage})`, 'INFO', undefined, 'SEARCH')
 
         let results = await window.api.subtitles.searchByHash(hash, subtitleLanguage)
         // parsedMetadata is populated in the fallback block; hoisted here so the
@@ -832,15 +832,17 @@ const App: React.FC = () => {
         // Fallback to Text Search if Hash Search fails
         if (!results || results.length === 0) {
           console.log('Hash search yielded no results. Falling back to text search...')
-          addStep(id, 'Hash search failed, falling back to text search', 'WARNING')
+          addStep(id, 'Hash search failed, falling back to text search', 'WARNING', undefined, 'SEARCH')
 
           // Parse filename to extract metadata (including isAnime flag, releaseGroup, source, resolution)
-          parsedMetadata = await window.api.utils.parseFilename(episode.filename)
+          // Pass full path so the dispatcher can extract the parent folder name
+          // for Smart Path Context Injection (e.g. title in folder, episode code in file).
+          parsedMetadata = await window.api.utils.parseFilename(episode.path)
           console.log('Parsed metadata:', parsedMetadata)
 
           const cleanedQuery = parsedMetadata.title || cleanFilename(episode.filename)
           console.log('Fallback Query:', cleanedQuery)
-          addStep(id, `Searching by query: "${cleanedQuery}"`, 'INFO')
+          addStep(id, `Searching by query: "${cleanedQuery}"`, 'INFO', undefined, 'SEARCH')
 
           setSearchEpisodes((prev) =>
             prev.map((e) =>
@@ -865,6 +867,18 @@ const App: React.FC = () => {
         if (results && results.length > 0) {
           console.log('Found', results.length, 'subtitle(s)')
 
+          // Count results per provider for the log badge rows (Step 4)
+          const providerCounts: Record<string, number> = {}
+          for (const r of results) {
+            let prov = 'Unknown'
+            const u = r.url ?? ''
+            if (u.startsWith('subsource:') || u.includes('subsource')) prov = 'SubSource'
+            else if (u.includes('subdl.com') || u.startsWith('subdl:')) prov = 'SubDL'
+            else if (u.includes('opensubtitles') || u.startsWith('opensubtitles:')) prov = 'OpenSubtitles'
+            providerCounts[prov] = (providerCounts[prov] ?? 0) + 1
+          }
+          setProviderResults(id, providerCounts)
+
           // Get sorted candidates for retry logic (top 5).
           // Pass video release metadata so syncScore can prefer same-group/source/res subtitles.
           const videoMeta = parsedMetadata
@@ -878,7 +892,7 @@ const App: React.FC = () => {
 
           if (candidates.length === 0) {
             console.log('No suitable subtitle found after filtering')
-            addStep(id, 'No suitable subtitle found after language/score filtering', 'WARNING')
+            addStep(id, 'No suitable subtitle found after language/score filtering', 'WARNING', undefined, 'SEARCH')
             updateStatus(id, 'WARNING')
 
             setSearchEpisodes((prev) =>
@@ -901,26 +915,44 @@ const App: React.FC = () => {
           let successfulSubtitle: SubtitleResult | null = null
 
           const exportPath = await window.api.settings.get('export_path')
-          const metadata = await window.api.utils.parseFilename(episode.filename)
+          const metadata = await window.api.utils.parseFilename(episode.path)
           console.log('Using metadata for download:', metadata)
 
           // START: Log Parser Details
           if (metadata.parserUsed) {
-            addStep(id, `Parsed using: ${metadata.parserUsed}`, 'INFO')
+            addStep(id, `Parsed using: ${metadata.parserUsed}`, 'INFO', undefined, 'TITLE')
           }
           if (metadata.anilistId) {
             addStep(
               id,
               `Identified as Anime via AniList: ${metadata.title} (ID: ${metadata.anilistId})`,
-              'SUCCESS'
+              'SUCCESS',
+              undefined,
+              'TITLE'
             )
           }
           if (metadata.title) {
             const epInfo =
               metadata.episode !== undefined ? `S${metadata.season}E${metadata.episode}` : 'Movie'
-            addStep(id, `Detected: ${metadata.title} (${epInfo})`, 'INFO')
+            addStep(id, `Detected: ${metadata.title} (${epInfo})`, 'INFO', undefined, 'TITLE')
           }
           // END: Log Parser Details
+
+          // Store structured metadata for the log metadata card
+          setMetadata(id, {
+            title: metadata.title,
+            episode: metadata.episode as number | undefined,
+            season: metadata.season as number | undefined,
+            year: metadata.year as number | undefined,
+            parserUsed: metadata.parserUsed,
+            anilistId: metadata.anilistId as number | undefined,
+            malId: metadata.malId as number | undefined,
+            releaseGroup: metadata.releaseGroup as string | undefined,
+            resolution: metadata.resolution as string | undefined,
+            source: metadata.source as string | undefined,
+            anilistVerified: metadata.anilistVerified as boolean | undefined,
+            type: metadata.type as string | undefined
+          })
 
           for (let attempt = 0; attempt < candidates.length; attempt++) {
             const candidate = candidates[attempt]
@@ -945,7 +977,7 @@ const App: React.FC = () => {
               )
             )
 
-            addStep(id, `Attempt ${attempt + 1}: Downloading ${candidate.filename}`, 'INFO')
+            addStep(id, `Attempt ${attempt + 1}: Downloading ${candidate.filename}`, 'INFO', undefined, 'DOWNLOAD')
 
             try {
               // Determine download path
@@ -980,10 +1012,10 @@ const App: React.FC = () => {
               // Check for ZIP extraction logs
               if (downloaded.wasZip) {
                 const zipName = downloaded.originalFilename || 'archive.zip'
-                addStep(id, `Downloaded ZIP archive: ${zipName}`, 'INFO')
+                addStep(id, `Downloaded ZIP archive: ${zipName}`, 'INFO', undefined, 'DOWNLOAD')
 
                 if (downloaded.extractedFilename) {
-                  addStep(id, `Extracted: ${downloaded.extractedFilename}`, 'SUCCESS')
+                  addStep(id, `Extracted: ${downloaded.extractedFilename}`, 'SUCCESS', undefined, 'DOWNLOAD')
                 }
               }
 
@@ -997,18 +1029,18 @@ const App: React.FC = () => {
               downloadSucceeded = true
               successfulSubtitle = candidate
               console.log(`✅ Download succeeded: ${candidate.filename}`)
-              addStep(id, `Download succeeded: ${candidate.filename}`, 'SUCCESS')
+              addStep(id, `Download succeeded: ${candidate.filename}`, 'SUCCESS', undefined, 'DOWNLOAD')
               break // Exit retry loop
             } catch (downloadError: any) {
               console.error(`❌ Attempt ${attempt + 1} failed:`, downloadError)
-              addStep(id, `Download failed: ${downloadError.message}`, 'ERROR')
+              addStep(id, `Download failed: ${downloadError.message}`, 'ERROR', undefined, 'DOWNLOAD')
               // Continue to next candidate
             }
           }
 
           if (!downloadSucceeded || !successfulSubtitle) {
             console.log('All download attempts failed')
-            addStep(id, 'All download attempts failed', 'ERROR')
+            addStep(id, 'All download attempts failed', 'ERROR', undefined, 'DOWNLOAD')
             updateStatus(id, 'FAILED')
 
             setSearchEpisodes((prev) =>
@@ -1045,7 +1077,7 @@ const App: React.FC = () => {
             // Determine output path
             let outputPath = ''
             if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
-              const metadata = await window.api.utils.parseFilename(episode.filename)
+              const metadata = await window.api.utils.parseFilename(episode.path)
               const seriesName = metadata.title || 'Merged'
 
               // Clean Series Name for Folder Grouping
@@ -1076,18 +1108,29 @@ const App: React.FC = () => {
             let finalSubtitlePath = subtitlePath // default: use original if sync fails
 
             try {
-              addStep(id, 'Syncing subtitle timing with Alass...', 'INFO')
+              addStep(id, 'Syncing subtitle timing with Alass...', 'INFO', undefined, 'SYNC')
               await (window.api as any).alass.sync({
                 videoPath: episode.path,
                 inputSubPath: subtitlePath,
                 outputSubPath: syncedPath
               })
               finalSubtitlePath = syncedPath
-              addStep(id, 'Subtitle sync successful', 'SUCCESS')
+              addStep(id, 'Subtitle sync successful', 'SUCCESS', undefined, 'SYNC')
               console.log('[Alass] Using synced subtitle:', syncedPath)
+              // Parse shift from the log message we already captured
+              setSyncInfo(id, { accepted: true })
             } catch (syncErr: any) {
               console.warn('[Alass] Sync failed, using original subtitle:', syncErr.message)
-              addStep(id, `Alass sync skipped: ${syncErr.message}`, 'WARNING')
+              addStep(id, `Alass sync skipped: ${syncErr.message}`, 'WARNING', undefined, 'SYNC')
+              // Try to extract shift seconds from error message like "max block shift 48s"
+              const shiftMatch = syncErr.message.match(/(\d+(?:\.\d+)?)\s*s\s*>/)
+              const skippedMatch = syncErr.message.match(/skipped|no alass|corrupt/i)
+              setSyncInfo(id, {
+                accepted: false,
+                shiftSeconds: shiftMatch ? parseFloat(shiftMatch[1]) : undefined,
+                skipped: !!skippedMatch,
+                skipReason: syncErr.message
+              })
             }
             // ── End Alass Sync ──────────────────────────────────────────────
 
@@ -1130,12 +1173,12 @@ const App: React.FC = () => {
               )
             )
 
-            addStep(id, 'Process completed successfully', 'SUCCESS')
+            addStep(id, 'Process completed successfully', 'SUCCESS', undefined, 'MERGE')
             updateStatus(id, 'COMPLETED')
             addToast(`Successfully processed: ${episode.filename}`, 'success')
           } catch (downloadError: any) {
             console.error('Download or merge failed:', downloadError)
-            addStep(id, `Process failed: ${downloadError.message}`, 'ERROR')
+            addStep(id, `Process failed: ${downloadError.message}`, 'ERROR', undefined, 'MERGE')
             updateStatus(id, 'FAILED')
 
             setSearchEpisodes((prev) =>
@@ -1153,7 +1196,7 @@ const App: React.FC = () => {
           }
         } else {
           console.log('No subtitles found')
-          addStep(id, 'No subtitles found', 'WARNING')
+          addStep(id, 'No subtitles found', 'WARNING', undefined, 'SEARCH')
           updateStatus(id, 'WARNING')
 
           setSearchEpisodes((prev) =>
@@ -1170,7 +1213,7 @@ const App: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error in auto-match process:', err)
-        addStep(id, `Error: ${err.message}`, 'ERROR')
+        addStep(id, `Error: ${err.message}`, 'ERROR', undefined, 'TITLE')
         updateStatus(id, 'FAILED')
 
         // Check if it's an API key error
@@ -1229,7 +1272,7 @@ const App: React.FC = () => {
       const exportPath = await window.api.settings.get('export_path')
 
       if (exportPath && typeof exportPath === 'string' && exportPath.trim().length > 0) {
-        const metadata = await window.api.utils.parseFilename(episode.filename)
+        const metadata = await window.api.utils.parseFilename(episode.path)
         const seriesName = metadata.title || 'Merged'
 
         // Clean Series Name for Folder Grouping

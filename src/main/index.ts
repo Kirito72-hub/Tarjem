@@ -845,7 +845,9 @@ app.whenReady().then(async () => {
   // Utility handlers
   ipcMain.handle('utils:parseFilename', async (_event, filename, folderName) => {
     const parserMode = (store?.get('parser_mode') ?? 'tv') as ParserMode
-    return parseMediaFilenameDispatcher(basename(filename), folderName, parserMode)
+    // Pass the full path (filename may be a full path from episode.path); the dispatcher
+    // extracts path.dirname internally for Smart Path Context Injection.
+    return parseMediaFilenameDispatcher(filename, folderName, parserMode)
   })
 
   ipcMain.handle('utils:deleteFile', async (_event, filePath) => {
