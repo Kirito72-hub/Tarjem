@@ -388,7 +388,7 @@ export class SubSourceService implements SubtitleProvider {
           // Passes: Anitomy → Guessit → Strict Regex (never matches year digits).
           // If only 1 subtitle in zip → used directly. If episode specified and no match → throws.
           const isAnime = !!(options as any)?.isAnime
-          let subtitleEntry = await findEpisodeInZip(zipEntries, {
+          const subtitleEntry = await findEpisodeInZip(zipEntries, {
             season: options?.startSeason,
             episode: options?.startEpisode,
             isAnime

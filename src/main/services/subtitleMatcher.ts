@@ -43,10 +43,7 @@ export function getSubtitleEntries(entries: ZipEntry[]): ZipEntry[] {
  * Pass 1: Anitomy — understands anime naming conventions.
  * "[HorribleSubs] Your Lie in April - 06 [720p].srt" → episode: 6
  */
-async function matchWithAnitomy(
-  subs: ZipEntry[],
-  opts: MatchOptions
-): Promise<ZipEntry | null> {
+async function matchWithAnitomy(subs: ZipEntry[], opts: MatchOptions): Promise<ZipEntry | null> {
   if (opts.episode === undefined) return null
 
   for (const entry of subs) {
@@ -56,9 +53,7 @@ async function matchWithAnitomy(
 
       const epMatch = parsed.episode === opts.episode
       const seasonMatch =
-        opts.season === undefined ||
-        parsed.season === undefined ||
-        parsed.season === opts.season
+        opts.season === undefined || parsed.season === undefined || parsed.season === opts.season
 
       if (epMatch && seasonMatch) {
         console.log(`[SubtitleMatcher] Pass 1 (Anitomy) matched: ${entry.entryName}`)
@@ -85,9 +80,7 @@ function matchWithGuessit(subs: ZipEntry[], opts: MatchOptions): ZipEntry | null
 
       const epMatch = parsed.episode === opts.episode
       const seasonMatch =
-        opts.season === undefined ||
-        parsed.season === undefined ||
-        parsed.season === opts.season
+        opts.season === undefined || parsed.season === undefined || parsed.season === opts.season
 
       if (epMatch && seasonMatch) {
         console.log(`[SubtitleMatcher] Pass 2 (Guessit) matched: ${entry.entryName}`)
@@ -163,7 +156,9 @@ export async function findEpisodeInZip(
   // through when a TV series ZIP contained only one (incorrect) file.
   // We only skip the waterfall for single-file packs when NO episode is known (e.g. movies).
   if (subs.length === 1 && opts.episode === undefined) {
-    console.log(`[SubtitleMatcher] Single subtitle, no episode requested — using directly: ${subs[0].entryName}`)
+    console.log(
+      `[SubtitleMatcher] Single subtitle, no episode requested — using directly: ${subs[0].entryName}`
+    )
     return subs[0]
   }
 
@@ -187,7 +182,9 @@ export async function findEpisodeInZip(
   const regexMatch = matchWithRegex(subs, opts)
   if (regexMatch) return regexMatch
 
-  console.log(`[SubtitleMatcher] No match found for episode ${opts.episode} in ${subs.length} subtitle(s).`)
+  console.log(
+    `[SubtitleMatcher] No match found for episode ${opts.episode} in ${subs.length} subtitle(s).`
+  )
   console.log('[SubtitleMatcher] ZIP contents:')
   subs.forEach((e) => console.log(`  - ${e.entryName}`))
 

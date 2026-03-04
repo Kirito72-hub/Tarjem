@@ -429,11 +429,11 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === episodeId
             ? {
-              ...e,
-              stage: ProcessingStage.COMPLETED,
-              statusMessage: 'Subtitle downloaded',
-              progress: 100
-            }
+                ...e,
+                stage: ProcessingStage.COMPLETED,
+                statusMessage: 'Subtitle downloaded',
+                progress: 100
+              }
             : e
         )
       )
@@ -446,10 +446,10 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === episodeId
             ? {
-              ...e,
-              stage: ProcessingStage.ERROR,
-              statusMessage: 'Download failed'
-            }
+                ...e,
+                stage: ProcessingStage.ERROR,
+                statusMessage: 'Download failed'
+              }
             : e
         )
       )
@@ -524,8 +524,6 @@ const App: React.FC = () => {
       .replace(/\s+/g, ' ') // Collapse multiple spaces
       .trim()
   }
-
-
 
   // Normalize title for comparison (used by extractEpisodeInfo)
   const normalizeTitle = (title: string): string =>
@@ -636,9 +634,6 @@ const App: React.FC = () => {
     return result
   }
 
-
-
-
   // ── syncScore Helpers ──────────────────────────────────────────────────────
   // Source equivalence groups: any term in the same group matches any other.
   const SOURCE_GROUPS: string[][] = [
@@ -667,7 +662,10 @@ const App: React.FC = () => {
 
     // +50 — release group match
     if (releaseGroup && releaseGroup.trim().length > 0) {
-      const groupRx = new RegExp(`\\b${releaseGroup.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+      const groupRx = new RegExp(
+        `\\b${releaseGroup.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
+        'i'
+      )
       if (groupRx.test(haystack)) score += 50
     }
 
@@ -675,7 +673,10 @@ const App: React.FC = () => {
     if (videoSource && videoSource.trim().length > 0) {
       const normSource = videoSource.toLowerCase().replace(/[\s-]/g, '')
       const sourceGroup = SOURCE_GROUPS.find((g) => g.includes(normSource)) ?? [normSource]
-      const sourceRx = new RegExp(sourceGroup.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i')
+      const sourceRx = new RegExp(
+        sourceGroup.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+        'i'
+      )
       if (sourceRx.test(haystack)) score += 20
     }
 
@@ -736,7 +737,12 @@ const App: React.FC = () => {
     if (videoMeta) {
       candidates = candidates.map((c) => ({
         ...c,
-        syncScore: computeSyncScore(c, videoMeta.releaseGroup, videoMeta.source, videoMeta.resolution)
+        syncScore: computeSyncScore(
+          c,
+          videoMeta.releaseGroup,
+          videoMeta.source,
+          videoMeta.resolution
+        )
       }))
       candidates.sort((a, b) => (b.syncScore ?? 0) - (a.syncScore ?? 0))
 
@@ -756,7 +762,7 @@ const App: React.FC = () => {
       const filtered = candidates.filter((subtitle) => {
         const subInfo = extractEpisodeInfo(subtitle.filename)
         if (subInfo.episode === undefined) return true // pack / unknown → keep
-        return subInfo.episode === videoInfo.episode   // explicit match → keep
+        return subInfo.episode === videoInfo.episode // explicit match → keep
       })
       // Only apply the filter if it still leaves us some candidates
       if (filtered.length > 0) candidates = filtered
@@ -766,8 +772,8 @@ const App: React.FC = () => {
     return candidates.slice(0, maxCandidates)
   }
 
-
-  const { createLog, addStep, updateStatus, setMetadata, setProviderResults, setSyncInfo } = useLogStore()
+  const { createLog, addStep, updateStatus, setMetadata, setProviderResults, setSyncInfo } =
+    useLogStore()
 
   const simulateProcessing = async (id: string, tab: DashboardTab) => {
     const setTargetEpisodes = tab === 'FILE_MATCH' ? setSearchEpisodes : setMergeEpisodes
@@ -787,11 +793,11 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-              ...e,
-              stage: ProcessingStage.HASHING,
-              statusMessage: 'Calculating hash...',
-              progress: 0
-            }
+                ...e,
+                stage: ProcessingStage.HASHING,
+                statusMessage: 'Calculating hash...',
+                progress: 0
+              }
             : e
         )
       )
@@ -810,11 +816,11 @@ const App: React.FC = () => {
           prev.map((e) =>
             e.id === id
               ? {
-                ...e,
-                stage: ProcessingStage.SEARCHING,
-                statusMessage: `Hash: ${hash.substring(0, 8)}...`,
-                progress: 100
-              }
+                  ...e,
+                  stage: ProcessingStage.SEARCHING,
+                  statusMessage: `Hash: ${hash.substring(0, 8)}...`,
+                  progress: 100
+                }
               : e
           )
         )
@@ -832,7 +838,13 @@ const App: React.FC = () => {
         // Fallback to Text Search if Hash Search fails
         if (!results || results.length === 0) {
           console.log('Hash search yielded no results. Falling back to text search...')
-          addStep(id, 'Hash search failed, falling back to text search', 'WARNING', undefined, 'SEARCH')
+          addStep(
+            id,
+            'Hash search failed, falling back to text search',
+            'WARNING',
+            undefined,
+            'SEARCH'
+          )
 
           // Parse filename to extract metadata (including isAnime flag, releaseGroup, source, resolution)
           // Pass full path so the dispatcher can extract the parent folder name
@@ -848,9 +860,9 @@ const App: React.FC = () => {
             prev.map((e) =>
               e.id === id
                 ? {
-                  ...e,
-                  statusMessage: `Searching: ${cleanedQuery}...`
-                }
+                    ...e,
+                    statusMessage: `Searching: ${cleanedQuery}...`
+                  }
                 : e
             )
           )
@@ -874,7 +886,8 @@ const App: React.FC = () => {
             const u = r.url ?? ''
             if (u.startsWith('subsource:') || u.includes('subsource')) prov = 'SubSource'
             else if (u.includes('subdl.com') || u.startsWith('subdl:')) prov = 'SubDL'
-            else if (u.includes('opensubtitles') || u.startsWith('opensubtitles:')) prov = 'OpenSubtitles'
+            else if (u.includes('opensubtitles') || u.startsWith('opensubtitles:'))
+              prov = 'OpenSubtitles'
             providerCounts[prov] = (providerCounts[prov] ?? 0) + 1
           }
           setProviderResults(id, providerCounts)
@@ -883,26 +896,32 @@ const App: React.FC = () => {
           // Pass video release metadata so syncScore can prefer same-group/source/res subtitles.
           const videoMeta = parsedMetadata
             ? {
-              releaseGroup: parsedMetadata.releaseGroup as string | undefined,
-              source: parsedMetadata.source as string | undefined,
-              resolution: parsedMetadata.resolution as string | undefined
-            }
+                releaseGroup: parsedMetadata.releaseGroup as string | undefined,
+                source: parsedMetadata.source as string | undefined,
+                resolution: parsedMetadata.resolution as string | undefined
+              }
             : undefined
           const candidates = getSortedCandidates(results, episode.filename, 5, videoMeta)
 
           if (candidates.length === 0) {
             console.log('No suitable subtitle found after filtering')
-            addStep(id, 'No suitable subtitle found after language/score filtering', 'WARNING', undefined, 'SEARCH')
+            addStep(
+              id,
+              'No suitable subtitle found after language/score filtering',
+              'WARNING',
+              undefined,
+              'SEARCH'
+            )
             updateStatus(id, 'WARNING')
 
             setSearchEpisodes((prev) =>
               prev.map((e) =>
                 e.id === id
                   ? {
-                    ...e,
-                    stage: ProcessingStage.NOT_FOUND,
-                    statusMessage: 'No suitable subtitle found'
-                  }
+                      ...e,
+                      stage: ProcessingStage.NOT_FOUND,
+                      statusMessage: 'No suitable subtitle found'
+                    }
                   : e
               )
             )
@@ -965,19 +984,25 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                    ...e,
-                    stage: ProcessingStage.DOWNLOADING,
-                    statusMessage:
-                      attempt > 0
-                        ? `Retry ${attempt + 1}: Downloading ${candidate.filename}...`
-                        : `Downloading: ${candidate.filename}...`,
-                    progress: 0
-                  }
+                      ...e,
+                      stage: ProcessingStage.DOWNLOADING,
+                      statusMessage:
+                        attempt > 0
+                          ? `Retry ${attempt + 1}: Downloading ${candidate.filename}...`
+                          : `Downloading: ${candidate.filename}...`,
+                      progress: 0
+                    }
                   : e
               )
             )
 
-            addStep(id, `Attempt ${attempt + 1}: Downloading ${candidate.filename}`, 'INFO', undefined, 'DOWNLOAD')
+            addStep(
+              id,
+              `Attempt ${attempt + 1}: Downloading ${candidate.filename}`,
+              'INFO',
+              undefined,
+              'DOWNLOAD'
+            )
 
             try {
               // Determine download path
@@ -1015,7 +1040,13 @@ const App: React.FC = () => {
                 addStep(id, `Downloaded ZIP archive: ${zipName}`, 'INFO', undefined, 'DOWNLOAD')
 
                 if (downloaded.extractedFilename) {
-                  addStep(id, `Extracted: ${downloaded.extractedFilename}`, 'SUCCESS', undefined, 'DOWNLOAD')
+                  addStep(
+                    id,
+                    `Extracted: ${downloaded.extractedFilename}`,
+                    'SUCCESS',
+                    undefined,
+                    'DOWNLOAD'
+                  )
                 }
               }
 
@@ -1029,11 +1060,23 @@ const App: React.FC = () => {
               downloadSucceeded = true
               successfulSubtitle = candidate
               console.log(`✅ Download succeeded: ${candidate.filename}`)
-              addStep(id, `Download succeeded: ${candidate.filename}`, 'SUCCESS', undefined, 'DOWNLOAD')
+              addStep(
+                id,
+                `Download succeeded: ${candidate.filename}`,
+                'SUCCESS',
+                undefined,
+                'DOWNLOAD'
+              )
               break // Exit retry loop
             } catch (downloadError: any) {
               console.error(`❌ Attempt ${attempt + 1} failed:`, downloadError)
-              addStep(id, `Download failed: ${downloadError.message}`, 'ERROR', undefined, 'DOWNLOAD')
+              addStep(
+                id,
+                `Download failed: ${downloadError.message}`,
+                'ERROR',
+                undefined,
+                'DOWNLOAD'
+              )
               // Continue to next candidate
             }
           }
@@ -1047,10 +1090,10 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                    ...e,
-                    stage: ProcessingStage.NOT_FOUND,
-                    statusMessage: 'Download failed for all candidates'
-                  }
+                      ...e,
+                      stage: ProcessingStage.NOT_FOUND,
+                      statusMessage: 'Download failed for all candidates'
+                    }
                   : e
               )
             )
@@ -1065,11 +1108,11 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                    ...e,
-                    stage: ProcessingStage.MERGING,
-                    statusMessage: 'Merging subtitle with video...',
-                    progress: 0
-                  }
+                      ...e,
+                      stage: ProcessingStage.MERGING,
+                      statusMessage: 'Merging subtitle with video...',
+                      progress: 0
+                    }
                   : e
               )
             )
@@ -1155,20 +1198,19 @@ const App: React.FC = () => {
                 /* ignore cleanup errors */
               }
             }
-            await safeDelete(subtitlePath)   // original extracted subtitle
-            await safeDelete(syncedPath)     // synced subtitle (no-op if sync failed)
-
+            await safeDelete(subtitlePath) // original extracted subtitle
+            await safeDelete(syncedPath) // synced subtitle (no-op if sync failed)
 
             // Success!
             setSearchEpisodes((prev) =>
               prev.map((e) =>
                 e.id === id
                   ? {
-                    ...e,
-                    stage: ProcessingStage.COMPLETED,
-                    statusMessage: 'Completed successfully',
-                    progress: 100
-                  }
+                      ...e,
+                      stage: ProcessingStage.COMPLETED,
+                      statusMessage: 'Completed successfully',
+                      progress: 100
+                    }
                   : e
               )
             )
@@ -1185,10 +1227,10 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                    ...e,
-                    stage: ProcessingStage.ERROR,
-                    statusMessage: `Failed: ${downloadError.message || 'Unknown error'}`
-                  }
+                      ...e,
+                      stage: ProcessingStage.ERROR,
+                      statusMessage: `Failed: ${downloadError.message || 'Unknown error'}`
+                    }
                   : e
               )
             )
@@ -1203,10 +1245,10 @@ const App: React.FC = () => {
             prev.map((e) =>
               e.id === id
                 ? {
-                  ...e,
-                  stage: ProcessingStage.NOT_FOUND,
-                  statusMessage: 'No subtitles found'
-                }
+                    ...e,
+                    stage: ProcessingStage.NOT_FOUND,
+                    statusMessage: 'No subtitles found'
+                  }
                 : e
             )
           )
@@ -1223,12 +1265,12 @@ const App: React.FC = () => {
           prev.map((e) =>
             e.id === id
               ? {
-                ...e,
-                stage: ProcessingStage.ERROR,
-                statusMessage: isApiKeyError
-                  ? 'API Key required - Check Settings'
-                  : 'Search failed'
-              }
+                  ...e,
+                  stage: ProcessingStage.ERROR,
+                  statusMessage: isApiKeyError
+                    ? 'API Key required - Check Settings'
+                    : 'Search failed'
+                }
               : e
           )
         )
@@ -1298,9 +1340,9 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-              ...e,
-              statusMessage: `Merging with ${targetSub?.filename}...`
-            }
+                ...e,
+                statusMessage: `Merging with ${targetSub?.filename}...`
+              }
             : e
         )
       )
@@ -1328,11 +1370,11 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-              ...e,
-              stage: ProcessingStage.COMPLETED,
-              statusMessage: 'Merge Complete',
-              progress: 100
-            }
+                ...e,
+                stage: ProcessingStage.COMPLETED,
+                statusMessage: 'Merge Complete',
+                progress: 100
+              }
             : e
         )
       )
@@ -1342,10 +1384,10 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-              ...e,
-              stage: ProcessingStage.ERROR,
-              statusMessage: `Merge Failed: ${error.message}`
-            }
+                ...e,
+                stage: ProcessingStage.ERROR,
+                statusMessage: `Merge Failed: ${error.message}`
+              }
             : e
         )
       )

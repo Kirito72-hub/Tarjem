@@ -34,14 +34,11 @@ async function extractAudio(videoPath: string, ffmpegPath: string): Promise<stri
   const tempAudio = path.join(tempDir, `alass_audio_${Date.now()}.mka`)
 
   return new Promise((resolve, reject) => {
-    const proc = spawn(ffmpegPath, [
-      '-i', videoPath,
-      '-vn', '-sn', '-dn',
-      '-map', '0:a:0',
-      '-c:a', 'copy',
-      '-y',
-      tempAudio
-    ], { stdio: ['ignore', 'pipe', 'pipe'] })
+    const proc = spawn(
+      ffmpegPath,
+      ['-i', videoPath, '-vn', '-sn', '-dn', '-map', '0:a:0', '-c:a', 'copy', '-y', tempAudio],
+      { stdio: ['ignore', 'pipe', 'pipe'] }
+    )
 
     proc.on('close', (code) => {
       if (code === 0) {
@@ -84,12 +81,7 @@ function msToAssTimestamp(ms: number): string {
 function srtTimestampToMs(ts: string): number {
   const [h, m, rest] = ts.split(':')
   const [s, ms] = rest.split(',')
-  return (
-    parseInt(h) * 3_600_000 +
-    parseInt(m) * 60_000 +
-    parseInt(s) * 1_000 +
-    parseInt(ms)
-  )
+  return parseInt(h) * 3_600_000 + parseInt(m) * 60_000 + parseInt(s) * 1_000 + parseInt(ms)
 }
 
 function msToSrtTimestamp(ms: number): string {
@@ -179,15 +171,24 @@ async function detectFpsRatioWithAlass(
     )
 
     let combined = ''
-    const onData = (chunk: Buffer) => { combined += chunk.toString() }
+    const onData = (chunk: Buffer) => {
+      combined += chunk.toString()
+    }
     proc.stdout?.on('data', onData)
     proc.stderr?.on('data', onData)
 
-    const timer = setTimeout(() => { proc.kill('SIGKILL'); resolve(null) }, timeoutMs)
+    const timer = setTimeout(() => {
+      proc.kill('SIGKILL')
+      resolve(null)
+    }, timeoutMs)
 
     proc.on('close', () => {
       clearTimeout(timer)
-      try { fs.unlinkSync(tempOut) } catch { /* temp file may not exist */ }
+      try {
+        fs.unlinkSync(tempOut)
+      } catch {
+        /* temp file may not exist */
+      }
       const ratio = parseFpsRatioFromOutput(combined)
       if (ratio) {
         console.log(`[Alass] Pass 1 detected FPS ratio: ${ratio.toFixed(6)}`)
@@ -197,7 +198,10 @@ async function detectFpsRatioWithAlass(
       resolve(ratio)
     })
 
-    proc.on('error', () => { clearTimeout(timer); resolve(null) })
+    proc.on('error', () => {
+      clearTimeout(timer)
+      resolve(null)
+    })
   })
 }
 
@@ -205,20 +209,30 @@ async function detectFpsRatioWithAlass(
 
 function detectVideoFps(videoPath: string, ffprobePath: string): number | null {
   try {
-    const result = spawnSync(ffprobePath, [
-      '-v', 'error',
-      '-select_streams', 'v:0',
-      '-show_entries', 'stream=avg_frame_rate',
-      '-of', 'default=noprint_wrappers=1:nokey=1',
-      videoPath
-    ], { encoding: 'utf8', timeout: 10_000 })
+    const result = spawnSync(
+      ffprobePath,
+      [
+        '-v',
+        'error',
+        '-select_streams',
+        'v:0',
+        '-show_entries',
+        'stream=avg_frame_rate',
+        '-of',
+        'default=noprint_wrappers=1:nokey=1',
+        videoPath
+      ],
+      { encoding: 'utf8', timeout: 10_000 }
+    )
     const raw = (result.stdout ?? '').trim()
     if (!raw) return null
     const [num, den] = raw.split('/').map(Number)
     if (!den || den === 0) return null
     const fps = num / den
     return fps > 0 ? fps : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -281,7 +295,11 @@ export async function syncSubtitle(
     // Step 2 — Pass 1: detect FPS ratio (output discarded)
     console.log(`[Alass] Pass 1: detecting FPS ratio...`)
     const fpsRatio = await detectFpsRatioWithAlass(
-      binaryPath, tempAudio, inputSubPath, childEnv, timeoutMs
+      binaryPath,
+      tempAudio,
+      inputSubPath,
+      childEnv,
+      timeoutMs
     )
 
     let subToSync = inputSubPath
@@ -290,7 +308,7 @@ export async function syncSubtitle(
       const mismatchPct = Math.abs(fpsRatio - 1.0) * 100
       console.log(
         `[Alass] FPS mismatch: ${mismatchPct.toFixed(2)}% (ratio ${fpsRatio.toFixed(6)}) ` +
-        `→ pre-rescaling subtitle before Pass 2`
+          `→ pre-rescaling subtitle before Pass 2`
       )
 
       // Step 3a — Pre-rescale: stretch all timestamps by the ratio.
@@ -308,13 +326,20 @@ export async function syncSubtitle(
     // Step 3b / fallback — Pass 2: real sync on (possibly pre-rescaled) subtitle
     console.log(`[Alass] Pass 2: syncing...`)
     await runAlass(binaryPath, tempAudio, subToSync, outputSubPath, childEnv, timeoutMs)
-
   } finally {
-    try { fs.unlinkSync(tempAudio); console.log(`[Alass] Cleaned up temp audio: ${tempAudio}`) }
-    catch { /* ignore */ }
+    try {
+      fs.unlinkSync(tempAudio)
+      console.log(`[Alass] Cleaned up temp audio: ${tempAudio}`)
+    } catch {
+      /* ignore */
+    }
     if (tempPreScaled) {
-      try { fs.unlinkSync(tempPreScaled); console.log(`[Alass] Cleaned up pre-scaled sub: ${tempPreScaled}`) }
-      catch { /* ignore */ }
+      try {
+        fs.unlinkSync(tempPreScaled)
+        console.log(`[Alass] Cleaned up pre-scaled sub: ${tempPreScaled}`)
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
@@ -381,11 +406,13 @@ function runAlass(
       if (maxShiftSecs > MAX_SHIFT_SECS) {
         console.warn(
           `[Alass] Sync rejected: max block shift ${maxShiftSecs}s exceeds ${MAX_SHIFT_SECS}s threshold. ` +
-          `Subtitle and video are likely from different sources — falling back to unsynced.`
+            `Subtitle and video are likely from different sources — falling back to unsynced.`
         )
-        reject(new Error(
-          `[Alass] Sync unreliable: max block shift ${maxShiftSecs}s > ${MAX_SHIFT_SECS}s limit`
-        ))
+        reject(
+          new Error(
+            `[Alass] Sync unreliable: max block shift ${maxShiftSecs}s > ${MAX_SHIFT_SECS}s limit`
+          )
+        )
         return
       }
 

@@ -76,14 +76,14 @@ async function injectPathContext(
 ): Promise<ParsedMedia | null> {
   // Step 1 — Parse the raw base filename
   const baseParsed =
-    mode === 'anime'
-      ? await parseWithAnitomy(baseFilename)
-      : parseWithGuessit(baseFilename)
+    mode === 'anime' ? await parseWithAnitomy(baseFilename) : parseWithGuessit(baseFilename)
 
   // Only inject when the base parse lacks a meaningful show title
   if (hasMeaningfulTitle(baseParsed, baseFilename)) return null
 
-  console.log(`[PathContext] Base filename "${baseFilename}" has no meaningful title — attempting folder injection`)
+  console.log(
+    `[PathContext] Base filename "${baseFilename}" has no meaningful title — attempting folder injection`
+  )
 
   // Step 2 — Extract and parse the parent folder name
   const parentFolder = path.basename(path.dirname(filePath))
@@ -92,9 +92,7 @@ async function injectPathContext(
   console.log(`[PathContext] Parsing parent folder: "${parentFolder}"`)
 
   const folderParsed =
-    mode === 'anime'
-      ? await parseWithAnitomy(parentFolder)
-      : parseWithGuessit(parentFolder)
+    mode === 'anime' ? await parseWithAnitomy(parentFolder) : parseWithGuessit(parentFolder)
 
   if (!folderParsed.title) return null
 
@@ -108,12 +106,12 @@ async function injectPathContext(
   // Strip season tokens (S01, S1, Season 2) that anitomy may leave inside the title
   // for folder names like "Loner Life in Another World S01 1080p...".
   const rawFolderTitle = folderParsed.title
-  const cleanFolderTitle = rawFolderTitle
-    .replace(/\s+(?:Season\s+\d+|S0*\d+)\s*$/i, '')
-    .trim()
+  const cleanFolderTitle = rawFolderTitle.replace(/\s+(?:Season\s+\d+|S0*\d+)\s*$/i, '').trim()
 
   if (cleanFolderTitle !== rawFolderTitle) {
-    console.log(`[PathContext] Stripped season token from folder title: "${rawFolderTitle}" → "${cleanFolderTitle}"`)
+    console.log(
+      `[PathContext] Stripped season token from folder title: "${rawFolderTitle}" → "${cleanFolderTitle}"`
+    )
   }
 
   const { verified, canonicalTitle } = await anilist.verifyTitle(cleanFolderTitle)
@@ -122,13 +120,18 @@ async function injectPathContext(
     return null
   }
 
-
-  console.log(`[PathContext] ✅ Folder title verified: "${canonicalTitle}" — merging with file episode info`)
+  console.log(
+    `[PathContext] ✅ Folder title verified: "${canonicalTitle}" — merging with file episode info`
+  )
 
   // Step 5 — Merge: folder context + file episode
   const merged: Partial<ParsedMedia> = {
     title: canonicalTitle,
-    cleanTitle: canonicalTitle.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim(),
+    cleanTitle: canonicalTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim(),
     canonicalTitle,
     anilistVerified: true,
     parserUsed: 'path-context',
@@ -171,7 +174,11 @@ export async function parseMediaFilenameDispatcher(
   if (mode === 'anime') {
     // If filename is a full path, we can extract the parent folder ourselves
     const hasDirectory = path.dirname(filename) !== '.'
-    const filePath = hasDirectory ? filename : folderName ? path.join(folderName, baseFilename) : null
+    const filePath = hasDirectory
+      ? filename
+      : folderName
+        ? path.join(folderName, baseFilename)
+        : null
 
     if (filePath) {
       const injected = await injectPathContext(filePath, baseFilename, mode)
@@ -181,7 +188,9 @@ export async function parseMediaFilenameDispatcher(
 
   // ── Normal parsing flow ──────────────────────────────────────────────────
   const contextualFilename =
-    folderName && folderName.trim().length > 0 ? `${folderName.trim()} - ${baseFilename}` : baseFilename
+    folderName && folderName.trim().length > 0
+      ? `${folderName.trim()} - ${baseFilename}`
+      : baseFilename
 
   if (mode === 'tv') {
     const result = parseWithGuessit(contextualFilename)

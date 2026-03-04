@@ -1,33 +1,34 @@
 {
-  "subtitleId": 10139207,
-  "movieId": 150421,
+  "subtitleId": 2792050,
+  "movieId": 110789,
   "language": "arabic",
   "releaseInfo": [
-    "[Crunchyroll] Isekai Mokushiroku Mynoghra - 04"
+    "[Reaktor] Your Lie in April - Complete [1080p][x265][10-bit][Dual-Audio]",
+    "Your Lie in April [BD][1080p][HEVC 10bit x265][Dual Audio][Tenrai-Sensei]"
   ],
-  "commentary": "\t\nترجمة 🅲🆁🆄🅽🅲🅷🆈🆁🅾🅻🅻",
-  "files": 1,
-  "size": 46443,
+  "commentary": "ترجمة نتفليكس الأصلية للأنمي كامل + الحلقة الخاصة",
+  "files": null,
+  "size": null,
   "hearingImpaired": false,
   "foreignParts": false,
-  "framerate": "N/A",
-  "productionType": "translated",
-  "releaseType": "web",
-  "downloads": 55,
+  "framerate": null,
+  "productionType": null,
+  "releaseType": null,
+  "downloads": 80,
   "comments": 0,
   "rating": {
-    "good": 1,
+    "good": 0,
     "bad": 0,
-    "total": 1
+    "total": 0
   },
-  "preview": "﻿[Script Info]\nTitle: العربية\nScaledBorderAndShadow: yes\nOriginal Script: cr_ar  [http://www.crunchyroll.com/user/cr_ar]\nOriginal Translation: \nOriginal Editing: \nOriginal Timing: \nSynch Point: \nScript Updated By: \nUpdate Details: \nScriptType: v4.00+\nCollisions: Normal\nPlayResX: 640\nPlayResY: 360\nTimer: 0.0000\nWrapStyle: 0\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,Strikeout,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Default,Adobe Arabic,26,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,1,0,2,0010,0010,0020,1\nStyle: sign_generic,Adobe Arabic,25,&H00000000,&H000000FF,&H00FFFFFF,&H00000000,-1,0,0,0,100,100,0,0,1,2,0,2,0010,0010,0010,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\nDialogue: 0,0:00:07.48,0:00:09.28,Default,Werdel,0000,0000,0000,,...ولكن\n",
-  "uploaderId": 1116036,
+  "preview": null,
+  "uploaderId": 1073051,
   "contributors": [
     {
-      "id": 1116036,
-      "displayname": "wisam al sharifi"
+      "id": 1073051,
+      "displayname": "SameerAbuRub"
     }
   ],
-  "link": "/subtitle/apocalypse-bringer-mynoghra-world-conquest-starts-with-the-civilization-of-ruin-season-1-2025/arabic/10139207",
-  "createdAt": "2025-07-27T18:54:04.272Z"
+  "link": "/subtitle/your-lie-in-april-season-1/arabic/2792050",
+  "createdAt": "2022-06-02T18:01:00.000Z"
 }

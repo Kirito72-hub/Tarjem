@@ -606,7 +606,11 @@ app.whenReady().then(async () => {
           })
 
           // If no episode match and episode IS specified → try to derive from videoFilename
-          if (subtitleEntry === null && options?.startEpisode === undefined && options?.videoFilename) {
+          if (
+            subtitleEntry === null &&
+            options?.startEpisode === undefined &&
+            options?.videoFilename
+          ) {
             console.log('[Extraction] No episode in options, deriving from videoFilename...')
             const parserMode = (store?.get('parser_mode') ?? 'tv') as ParserMode
             const folderName = basename(dirname(options.videoFilename))

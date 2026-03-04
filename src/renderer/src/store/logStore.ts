@@ -5,11 +5,11 @@ import { create } from 'zustand'
 export type LogPhase = 'TITLE' | 'SEARCH' | 'DOWNLOAD' | 'SYNC' | 'MERGE'
 
 export const PHASE_META: Record<LogPhase, { label: string; order: number }> = {
-  TITLE:    { label: 'Title Resolution', order: 0 },
-  SEARCH:   { label: 'Subtitle Search',  order: 1 },
-  DOWNLOAD: { label: 'Download',         order: 2 },
-  SYNC:     { label: 'Sync (Alass)',     order: 3 },
-  MERGE:    { label: 'Merge',            order: 4 }
+  TITLE: { label: 'Title Resolution', order: 0 },
+  SEARCH: { label: 'Subtitle Search', order: 1 },
+  DOWNLOAD: { label: 'Download', order: 2 },
+  SYNC: { label: 'Sync (Alass)', order: 3 },
+  MERGE: { label: 'Merge', order: 4 }
 }
 
 // ── Data types ────────────────────────────────────────────────────────────────
@@ -39,11 +39,11 @@ export interface ProcessLogMetadata {
 }
 
 export interface ProcessLogSyncInfo {
-  fpsMismatch?: number    // e.g. 4.27  (percent)
-  fpsRatio?: number       // e.g. 1.042709
-  shiftSeconds?: number   // max block shift alass applied
-  accepted: boolean       // did the sync pass the threshold?
-  skipped?: boolean       // was sync skipped (no alass binary, corrupt sub, etc.)
+  fpsMismatch?: number // e.g. 4.27  (percent)
+  fpsRatio?: number // e.g. 1.042709
+  shiftSeconds?: number // max block shift alass applied
+  accepted: boolean // did the sync pass the threshold?
+  skipped?: boolean // was sync skipped (no alass binary, corrupt sub, etc.)
   skipReason?: string
 }
 
@@ -54,7 +54,7 @@ export interface ProcessLog {
   status: 'COMPLETED' | 'FAILED' | 'IN_PROGRESS' | 'WARNING'
   steps: LogStep[]
   metadata?: ProcessLogMetadata
-  providerResults?: Record<string, number>  // provider name → result count
+  providerResults?: Record<string, number> // provider name → result count
   syncInfo?: ProcessLogSyncInfo
 }
 
@@ -141,16 +141,12 @@ export const useLogStore = create<LogState>((set) => ({
 
   setProviderResults: (logId, results) =>
     set((state) => ({
-      logs: state.logs.map((log) =>
-        log.id === logId ? { ...log, providerResults: results } : log
-      )
+      logs: state.logs.map((log) => (log.id === logId ? { ...log, providerResults: results } : log))
     })),
 
   setSyncInfo: (logId, info) =>
     set((state) => ({
-      logs: state.logs.map((log) =>
-        log.id === logId ? { ...log, syncInfo: info } : log
-      )
+      logs: state.logs.map((log) => (log.id === logId ? { ...log, syncInfo: info } : log))
     })),
 
   clearLogs: () => set({ logs: [] })

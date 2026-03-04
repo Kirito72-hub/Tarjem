@@ -58,8 +58,8 @@ function phaseStatus(steps: LogStep[]): LogStep['type'] {
 /** Duration string: "1.4s" between first and last step in a phase */
 function phaseDuration(steps: LogStep[]): string | null {
   if (steps.length < 2) return null
-  const ms = new Date(steps[steps.length - 1].timestamp).getTime()
-    - new Date(steps[0].timestamp).getTime()
+  const ms =
+    new Date(steps[steps.length - 1].timestamp).getTime() - new Date(steps[0].timestamp).getTime()
   return ms > 0 ? `${(ms / 1000).toFixed(1)}s` : null
 }
 
@@ -88,10 +88,14 @@ function dedupeSteps(steps: LogStep[]): DedupedStep[] {
 
 function StepIcon({ type }: { type: LogStep['type'] }) {
   switch (type) {
-    case 'SUCCESS': return <CheckCircle className="text-emerald-400/80" size={13} />
-    case 'ERROR': return <XCircle className="text-red-400/80" size={13} />
-    case 'WARNING': return <AlertTriangle className="text-amber-400/80" size={13} />
-    default: return <div className="w-3 h-3 rounded-full border border-gray-600 bg-gray-800/60" />
+    case 'SUCCESS':
+      return <CheckCircle className="text-emerald-400/80" size={13} />
+    case 'ERROR':
+      return <XCircle className="text-red-400/80" size={13} />
+    case 'WARNING':
+      return <AlertTriangle className="text-amber-400/80" size={13} />
+    default:
+      return <div className="w-3 h-3 rounded-full border border-gray-600 bg-gray-800/60" />
   }
 }
 
@@ -115,11 +119,16 @@ const PHASE_STATUS_DOT: Record<LogStep['type'], string> = {
 
 function StatusIcon({ status }: { status: ProcessLog['status'] }) {
   switch (status) {
-    case 'COMPLETED': return <CheckCircle className="text-emerald-400" size={18} />
-    case 'FAILED': return <XCircle className="text-red-400" size={18} />
-    case 'WARNING': return <AlertTriangle className="text-amber-400" size={18} />
-    case 'IN_PROGRESS': return <Clock className="text-blue-400 animate-pulse" size={18} />
-    default: return <Info className="text-gray-500" size={18} />
+    case 'COMPLETED':
+      return <CheckCircle className="text-emerald-400" size={18} />
+    case 'FAILED':
+      return <XCircle className="text-red-400" size={18} />
+    case 'WARNING':
+      return <AlertTriangle className="text-amber-400" size={18} />
+    case 'IN_PROGRESS':
+      return <Clock className="text-blue-400 animate-pulse" size={18} />
+    default:
+      return <Info className="text-gray-500" size={18} />
   }
 }
 
@@ -153,25 +162,22 @@ function PhaseRow({ phase, steps }: PhaseRowProps) {
         </span>
 
         {/* Phase icon + name */}
-        <span className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase shrink-0 ${PHASE_STATUS_STYLE[status]} px-2 py-1 rounded-md border`}>
+        <span
+          className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase shrink-0 ${PHASE_STATUS_STYLE[status]} px-2 py-1 rounded-md border`}
+        >
           {PHASE_ICON[phase]}
           {meta.label}
         </span>
 
         {/* Last step summary (collapsed view) */}
-        {!open && (
-          <span className="flex-1 min-w-0 text-xs text-gray-500 truncate">{lastMsg}</span>
-        )}
+        {!open && <span className="flex-1 min-w-0 text-xs text-gray-500 truncate">{lastMsg}</span>}
 
         <div className="shrink-0 flex items-center gap-2 ml-auto">
-          {duration && (
-            <span className="text-xs font-mono text-gray-600">{duration}</span>
-          )}
+          {duration && <span className="text-xs font-mono text-gray-600">{duration}</span>}
           <span className="text-xs text-gray-600">
             {uniqueCount !== totalCount
               ? `${uniqueCount} unique / ${totalCount} total`
-              : `${totalCount} step${totalCount !== 1 ? 's' : ''}`
-            }
+              : `${totalCount} step${totalCount !== 1 ? 's' : ''}`}
           </span>
           <span className={`w-2 h-2 rounded-full ${PHASE_STATUS_DOT[status]}`} />
         </div>
@@ -181,16 +187,25 @@ function PhaseRow({ phase, steps }: PhaseRowProps) {
       {open && (
         <div className="border-t border-white/5 bg-[#0A0C12]/50 divide-y divide-white/[0.03]">
           {deduped.map((step) => (
-            <div key={step.id} className="flex items-start gap-3 px-5 py-2.5 group hover:bg-white/[0.02] transition-colors">
+            <div
+              key={step.id}
+              className="flex items-start gap-3 px-5 py-2.5 group hover:bg-white/[0.02] transition-colors"
+            >
               <div className="mt-0.5 shrink-0">
                 <StepIcon type={step.type} />
               </div>
               <div className="flex-1 min-w-0">
-                <span className={`text-xs leading-relaxed ${step.type === 'ERROR' ? 'text-red-400' :
-                  step.type === 'WARNING' ? 'text-amber-300' :
-                    step.type === 'SUCCESS' ? 'text-emerald-300' :
-                      'text-gray-400'
-                  }`}>
+                <span
+                  className={`text-xs leading-relaxed ${
+                    step.type === 'ERROR'
+                      ? 'text-red-400'
+                      : step.type === 'WARNING'
+                        ? 'text-amber-300'
+                        : step.type === 'SUCCESS'
+                          ? 'text-emerald-300'
+                          : 'text-gray-400'
+                  }`}
+                >
                   {step.message}
                 </span>
                 {/* Duplicate count badge */}
@@ -222,7 +237,9 @@ function MetadataCard({ meta }: { meta: ProcessLogMetadata }) {
   const epLabel =
     meta.episode !== undefined
       ? `S${String(meta.season ?? 1).padStart(2, '0')}E${String(meta.episode).padStart(2, '0')}`
-      : meta.type === 'movie' ? 'Movie' : null
+      : meta.type === 'movie'
+        ? 'Movie'
+        : null
 
   const parserColour: Record<string, string> = {
     anitomy: 'bg-violet-500/15 text-violet-300 border-violet-500/20',
@@ -230,7 +247,8 @@ function MetadataCard({ meta }: { meta: ProcessLogMetadata }) {
     'path-context': 'bg-teal-500/15 text-teal-300   border-teal-500/20',
     'anime-name-tool': 'bg-pink-500/15 text-pink-300 border-pink-500/20'
   }
-  const parserStyle = parserColour[meta.parserUsed ?? ''] ?? 'bg-gray-500/15 text-gray-300 border-gray-500/20'
+  const parserStyle =
+    parserColour[meta.parserUsed ?? ''] ?? 'bg-gray-500/15 text-gray-300 border-gray-500/20'
 
   return (
     <div className="mb-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-4 py-3">
@@ -242,9 +260,7 @@ function MetadataCard({ meta }: { meta: ProcessLogMetadata }) {
             {epLabel}
           </span>
         )}
-        {meta.year && (
-          <span className="text-xs text-gray-500">{meta.year}</span>
-        )}
+        {meta.year && <span className="text-xs text-gray-500">{meta.year}</span>}
         {meta.anilistVerified && (
           <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
             ✓ AniList
@@ -265,15 +281,11 @@ function MetadataCard({ meta }: { meta: ProcessLogMetadata }) {
         {meta.malId && (
           <span className="text-[11px] text-gray-500 font-mono">MAL·{meta.malId}</span>
         )}
-        {meta.resolution && (
-          <span className="text-[11px] text-gray-500">{meta.resolution}</span>
-        )}
+        {meta.resolution && <span className="text-[11px] text-gray-500">{meta.resolution}</span>}
         {meta.releaseGroup && (
           <span className="text-[11px] text-gray-500">[{meta.releaseGroup}]</span>
         )}
-        {meta.source && (
-          <span className="text-[11px] text-gray-500">{meta.source}</span>
-        )}
+        {meta.source && <span className="text-[11px] text-gray-500">{meta.source}</span>}
       </div>
     </div>
   )
@@ -312,17 +324,23 @@ function ProviderSummary({ results }: { results: Record<string, number> }) {
 
 function SyncCard({ info }: { info: ProcessLogSyncInfo }) {
   return (
-    <div className={`mb-2 rounded-lg border px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 ${info.accepted
-        ? 'border-emerald-500/20 bg-emerald-500/5'
-        : 'border-amber-500/20  bg-amber-500/5'
-      }`}>
+    <div
+      className={`mb-2 rounded-lg border px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 ${
+        info.accepted
+          ? 'border-emerald-500/20 bg-emerald-500/5'
+          : 'border-amber-500/20  bg-amber-500/5'
+      }`}
+    >
       {/* Status badge */}
-      <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${info.accepted
-          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
-          : info.skipped
-            ? 'bg-gray-500/15 text-gray-400 border-gray-500/25'
-            : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
-        }`}>
+      <span
+        className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+          info.accepted
+            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
+            : info.skipped
+              ? 'bg-gray-500/15 text-gray-400 border-gray-500/25'
+              : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
+        }`}
+      >
         <Zap size={10} className="inline mr-1" />
         {info.accepted ? 'Synced' : info.skipped ? 'Skipped' : 'Rejected'}
       </span>
@@ -338,7 +356,9 @@ function SyncCard({ info }: { info: ProcessLogSyncInfo }) {
         </span>
       )}
       {info.shiftSeconds !== undefined && (
-        <span className={`text-[11px] ${info.shiftSeconds > 30 ? 'text-red-400' : 'text-gray-400'}`}>
+        <span
+          className={`text-[11px] ${info.shiftSeconds > 30 ? 'text-red-400' : 'text-gray-400'}`}
+        >
           max shift <span className="font-mono">{info.shiftSeconds}s</span>
           {info.shiftSeconds > 30 && <span className="ml-1 text-red-400">(too large)</span>}
         </span>
@@ -372,7 +392,9 @@ export const LogsView: React.FC = () => {
   const copyAllLogs = () => {
     const lines: string[] = []
     for (const log of logs) {
-      lines.push(`=== ${log.filename} [${log.status}] @ ${new Date(log.timestamp).toISOString()} ===${''}`)
+      lines.push(
+        `=== ${log.filename} [${log.status}] @ ${new Date(log.timestamp).toISOString()} ===${''}`
+      )
       for (const step of log.steps) {
         lines.push(`  [${step.phase}] [${step.type}] ${step.message}`)
         if (step.detail) lines.push(`    ${step.detail}`)
@@ -453,7 +475,10 @@ export const LogsView: React.FC = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-200 truncate" title={log.filename}>
+                      <div
+                        className="text-sm font-medium text-gray-200 truncate"
+                        title={log.filename}
+                      >
                         {log.filename}
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5">
@@ -494,9 +519,7 @@ export const LogsView: React.FC = () => {
                             <ProviderSummary results={log.providerResults} />
                           )}
                           {/* Alass sync card above SYNC phase */}
-                          {phase === 'SYNC' && log.syncInfo && (
-                            <SyncCard info={log.syncInfo} />
-                          )}
+                          {phase === 'SYNC' && log.syncInfo && <SyncCard info={log.syncInfo} />}
                           <PhaseRow phase={phase} steps={steps} />
                         </React.Fragment>
                       ))}
