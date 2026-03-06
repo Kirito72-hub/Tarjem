@@ -353,6 +353,13 @@ app.whenReady().then(async () => {
           }
         }
 
+        // Normalize type: providers (SubDL etc.) only accept 'movie' or 'tv'.
+        // 'episode'/'series' come from path-context injection and must map to 'tv'.
+        // Default to 'tv' since this app is primarily for anime/TV series.
+        if (enrichedMetadata.type !== 'movie') {
+          enrichedMetadata.type = 'tv'
+        }
+
         console.log('Final Metadata used for search:', enrichedMetadata)
 
         // Use ProviderRegistry to search all sources

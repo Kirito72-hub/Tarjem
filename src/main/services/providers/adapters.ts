@@ -71,10 +71,16 @@ export class SubDLAdapter implements SubtitleProvider {
       const primaryTitle = (metadata as any).canonicalTitle || metadata.title || query
       const sanitizedQuery = primaryTitle.replace(/[-_]+$/, '').trim()
 
+      // Normalize type: SubDL only accepts 'movie' | 'tv' | 'all'.
+      // 'episode' comes from path-context injection and must map to 'tv'.
+      const rawType = (metadata as any).type
+      const normalizedType: 'movie' | 'tv' =
+        rawType === 'movie' ? 'movie' : 'tv'
+
       const params: any = {
         query: sanitizedQuery,
         language,
-        type: metadata.type || 'movie',
+        type: normalizedType,
         startSeason: metadata.season ? Math.floor(metadata.season) : undefined,
         startEpisode: metadata.episode ? Math.floor(metadata.episode) : undefined,
         imdbId: metadata.imdbId,
