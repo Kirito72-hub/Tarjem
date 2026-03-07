@@ -4,7 +4,7 @@ import { LanguageDropdown } from './LanguageDropdown'
 
 export const SettingsView: React.FC = () => {
   const [interfaceLanguage, setInterfaceLanguage] = useState('en')
-  const [parserMode, setParserMode] = useState<'anime' | 'tv'>('tv')
+  const [parserMode, setParserMode] = useState<'anime' | 'tv'>('anime')
   // Subtitle language is now managed via the "cog" menu in Dashboard (SubtitleSourcesModal)
 
   // API Keys State
@@ -230,11 +230,10 @@ export const SettingsView: React.FC = () => {
                   setParserMode('tv')
                   window.api.settings.set('parser_mode', 'tv')
                 }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all border ${
-                  parserMode === 'tv'
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all border ${parserMode === 'tv'
                     ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
                     : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
-                }`}
+                  }`}
               >
                 📺 TV
               </button>
@@ -243,11 +242,10 @@ export const SettingsView: React.FC = () => {
                   setParserMode('anime')
                   window.api.settings.set('parser_mode', 'anime')
                 }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all border ${
-                  parserMode === 'anime'
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all border ${parserMode === 'anime'
                     ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
                     : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
-                }`}
+                  }`}
               >
                 🎌 Anime
               </button>

@@ -16,7 +16,7 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
   isOpen,
   sources,
   currentLanguage = 'en',
-  onLanguageChange = () => {},
+  onLanguageChange = () => { },
   onClose,
   onSave
 }) => {
@@ -24,7 +24,7 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
   const [isLangOpen, setIsLangOpen] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [parserMode, setParserMode] = useState<'anime' | 'tv'>('tv')
+  const [parserMode, setParserMode] = useState<'anime' | 'tv'>('anime')
 
   // Reset local state when modal opens or parent sources change
   useEffect(() => {
@@ -133,21 +133,19 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={() => handleParserMode('tv')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                  parserMode === 'tv'
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all border ${parserMode === 'tv'
                     ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
                     : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
-                }`}
+                  }`}
               >
                 📺 TV
               </button>
               <button
                 onClick={() => handleParserMode('anime')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                  parserMode === 'anime'
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all border ${parserMode === 'anime'
                     ? 'bg-purple-600/30 border-purple-500/60 text-purple-300'
                     : 'bg-transparent border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
-                }`}
+                  }`}
               >
                 🎌 Anime
               </button>
@@ -170,15 +168,14 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center justify-between px-3 py-3 rounded-lg cursor-grab active:cursor-grabbing transition-all border ${
-                  dragOverIndex === index
+                className={`flex items-center justify-between px-3 py-3 rounded-lg cursor-grab active:cursor-grabbing transition-all border ${dragOverIndex === index
                     ? 'border-purple-500 bg-purple-500/20'
                     : draggedIndex === index
                       ? 'opacity-50 border-transparent'
                       : source.enabled
                         ? 'bg-purple-500/10 border-purple-500/20'
                         : 'bg-transparent border-transparent hover:bg-white/5'
-                }`}
+                  }`}
               >
                 {/* Drag Handle */}
                 <div className="text-gray-500 hover:text-gray-300 mr-2 cursor-grab">
@@ -190,9 +187,8 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
                   onClick={() => toggleSource(source.id)}
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      source.enabled ? 'bg-purple-500 text-white' : 'bg-[#1C212E] text-gray-500'
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${source.enabled ? 'bg-purple-500 text-white' : 'bg-[#1C212E] text-gray-500'
+                      }`}
                   >
                     <Globe size={16} />
                   </div>
@@ -208,9 +204,8 @@ export const SubtitleSourcesModal: React.FC<SubtitleSourcesModalProps> = ({
 
                 <div
                   onClick={() => toggleSource(source.id)}
-                  className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
-                    source.enabled ? 'bg-purple-500 border-purple-500' : 'border-gray-600'
-                  }`}
+                  className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${source.enabled ? 'bg-purple-500 border-purple-500' : 'border-gray-600'
+                    }`}
                 >
                   {source.enabled && <Check size={12} className="text-white" />}
                 </div>

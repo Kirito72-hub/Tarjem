@@ -619,7 +619,7 @@ app.whenReady().then(async () => {
             options?.videoFilename
           ) {
             console.log('[Extraction] No episode in options, deriving from videoFilename...')
-            const parserMode = (store?.get('parser_mode') ?? 'tv') as ParserMode
+            const parserMode = (store?.get('parser_mode') ?? 'anime') as ParserMode
             const folderName = basename(dirname(options.videoFilename))
             const videoParsed = await parseMediaFilenameDispatcher(
               basename(options.videoFilename),
@@ -855,7 +855,7 @@ app.whenReady().then(async () => {
 
   // Utility handlers
   ipcMain.handle('utils:parseFilename', async (_event, filename, folderName) => {
-    const parserMode = (store?.get('parser_mode') ?? 'tv') as ParserMode
+    const parserMode = (store?.get('parser_mode') ?? 'anime') as ParserMode
     // Pass the full path (filename may be a full path from episode.path); the dispatcher
     // extracts path.dirname internally for Smart Path Context Injection.
     return parseMediaFilenameDispatcher(filename, folderName, parserMode)

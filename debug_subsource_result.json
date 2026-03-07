@@ -1,19 +1,19 @@
 {
-  "subtitleId": 1405152,
-  "movieId": 10816,
+  "subtitleId": 1641245,
+  "movieId": 134120,
   "language": "arabic",
   "releaseInfo": [
-    "[eXtraTranz][KimSaraen]The.Town.Where.Only.I.Am.Missing.2016[Arabic][720p]"
+    "[Kuroko-subs] Ghost in the Shell Stand Alone Complex - 01~26"
   ],
-  "commentary": "Bkoorsan",
+  "commentary": "Kuroko-subs.blogspot.com",
   "files": null,
   "size": null,
-  "hearingImpaired": true,
+  "hearingImpaired": false,
   "foreignParts": false,
   "framerate": null,
   "productionType": null,
   "releaseType": null,
-  "downloads": 4,
+  "downloads": 25,
   "comments": 0,
   "rating": {
     "good": 0,
@@ -21,13 +21,13 @@
     "total": 0
   },
   "preview": null,
-  "uploaderId": 983643,
+  "uploaderId": 891470,
   "contributors": [
     {
-      "id": 983643,
-      "displayname": "Bkoorsan"
+      "id": 891470,
+      "displayname": "Kuroko-Subs"
     }
   ],
-  "link": "/subtitle/erased-2016/arabic/1405152",
-  "createdAt": "2016-09-15T21:45:00.000Z"
+  "link": "/subtitle/ghost-in-the-shell-stand-alone-complex-season-0-2002/arabic/1641245",
+  "createdAt": "2017-10-05T04:55:00.000Z"
 }

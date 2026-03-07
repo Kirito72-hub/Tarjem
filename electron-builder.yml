@@ -20,6 +20,9 @@ asarUnpack:
   - node_modules/anime-name-tool/**
   - node_modules/electron-store/**
   - node_modules/adm-zip/**
+extraResources:
+  - from: 'alass-windows64/bin/alass-cli.exe'
+    to: 'alass/bin/alass-cli.exe'
 win:
   executableName: tarjem
   target:

@@ -429,11 +429,11 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === episodeId
             ? {
-                ...e,
-                stage: ProcessingStage.COMPLETED,
-                statusMessage: 'Subtitle downloaded',
-                progress: 100
-              }
+              ...e,
+              stage: ProcessingStage.COMPLETED,
+              statusMessage: 'Subtitle downloaded',
+              progress: 100
+            }
             : e
         )
       )
@@ -446,10 +446,10 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === episodeId
             ? {
-                ...e,
-                stage: ProcessingStage.ERROR,
-                statusMessage: 'Download failed'
-              }
+              ...e,
+              stage: ProcessingStage.ERROR,
+              statusMessage: 'Download failed'
+            }
             : e
         )
       )
@@ -793,11 +793,11 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-                ...e,
-                stage: ProcessingStage.HASHING,
-                statusMessage: 'Calculating hash...',
-                progress: 0
-              }
+              ...e,
+              stage: ProcessingStage.HASHING,
+              statusMessage: 'Calculating hash...',
+              progress: 0
+            }
             : e
         )
       )
@@ -816,11 +816,11 @@ const App: React.FC = () => {
           prev.map((e) =>
             e.id === id
               ? {
-                  ...e,
-                  stage: ProcessingStage.SEARCHING,
-                  statusMessage: `Hash: ${hash.substring(0, 8)}...`,
-                  progress: 100
-                }
+                ...e,
+                stage: ProcessingStage.SEARCHING,
+                statusMessage: `Hash: ${hash.substring(0, 8)}...`,
+                progress: 100
+              }
               : e
           )
         )
@@ -860,9 +860,9 @@ const App: React.FC = () => {
             prev.map((e) =>
               e.id === id
                 ? {
-                    ...e,
-                    statusMessage: `Searching: ${cleanedQuery}...`
-                  }
+                  ...e,
+                  statusMessage: `Searching: ${cleanedQuery}...`
+                }
                 : e
             )
           )
@@ -896,10 +896,10 @@ const App: React.FC = () => {
           // Pass video release metadata so syncScore can prefer same-group/source/res subtitles.
           const videoMeta = parsedMetadata
             ? {
-                releaseGroup: parsedMetadata.releaseGroup as string | undefined,
-                source: parsedMetadata.source as string | undefined,
-                resolution: parsedMetadata.resolution as string | undefined
-              }
+              releaseGroup: parsedMetadata.releaseGroup as string | undefined,
+              source: parsedMetadata.source as string | undefined,
+              resolution: parsedMetadata.resolution as string | undefined
+            }
             : undefined
           const candidates = getSortedCandidates(results, episode.filename, 5, videoMeta)
 
@@ -918,10 +918,10 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                      ...e,
-                      stage: ProcessingStage.NOT_FOUND,
-                      statusMessage: 'No suitable subtitle found'
-                    }
+                    ...e,
+                    stage: ProcessingStage.NOT_FOUND,
+                    statusMessage: 'No suitable subtitle found'
+                  }
                   : e
               )
             )
@@ -952,7 +952,9 @@ const App: React.FC = () => {
           }
           if (metadata.title) {
             const epInfo =
-              metadata.episode !== undefined ? `S${metadata.season}E${metadata.episode}` : 'Movie'
+              metadata.episode !== undefined
+                ? `S${String(metadata.season ?? 1).padStart(2, '0')}E${String(metadata.episode).padStart(2, '0')}`
+                : 'Movie'
             addStep(id, `Detected: ${metadata.title} (${epInfo})`, 'INFO', undefined, 'TITLE')
           }
           // END: Log Parser Details
@@ -984,14 +986,14 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                      ...e,
-                      stage: ProcessingStage.DOWNLOADING,
-                      statusMessage:
-                        attempt > 0
-                          ? `Retry ${attempt + 1}: Downloading ${candidate.filename}...`
-                          : `Downloading: ${candidate.filename}...`,
-                      progress: 0
-                    }
+                    ...e,
+                    stage: ProcessingStage.DOWNLOADING,
+                    statusMessage:
+                      attempt > 0
+                        ? `Retry ${attempt + 1}: Downloading ${candidate.filename}...`
+                        : `Downloading: ${candidate.filename}...`,
+                    progress: 0
+                  }
                   : e
               )
             )
@@ -1090,10 +1092,10 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                      ...e,
-                      stage: ProcessingStage.NOT_FOUND,
-                      statusMessage: 'Download failed for all candidates'
-                    }
+                    ...e,
+                    stage: ProcessingStage.NOT_FOUND,
+                    statusMessage: 'Download failed for all candidates'
+                  }
                   : e
               )
             )
@@ -1108,11 +1110,11 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                      ...e,
-                      stage: ProcessingStage.MERGING,
-                      statusMessage: 'Merging subtitle with video...',
-                      progress: 0
-                    }
+                    ...e,
+                    stage: ProcessingStage.MERGING,
+                    statusMessage: 'Merging subtitle with video...',
+                    progress: 0
+                  }
                   : e
               )
             )
@@ -1206,11 +1208,11 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                      ...e,
-                      stage: ProcessingStage.COMPLETED,
-                      statusMessage: 'Completed successfully',
-                      progress: 100
-                    }
+                    ...e,
+                    stage: ProcessingStage.COMPLETED,
+                    statusMessage: 'Completed successfully',
+                    progress: 100
+                  }
                   : e
               )
             )
@@ -1227,10 +1229,10 @@ const App: React.FC = () => {
               prev.map((e) =>
                 e.id === id
                   ? {
-                      ...e,
-                      stage: ProcessingStage.ERROR,
-                      statusMessage: `Failed: ${downloadError.message || 'Unknown error'}`
-                    }
+                    ...e,
+                    stage: ProcessingStage.ERROR,
+                    statusMessage: `Failed: ${downloadError.message || 'Unknown error'}`
+                  }
                   : e
               )
             )
@@ -1245,10 +1247,10 @@ const App: React.FC = () => {
             prev.map((e) =>
               e.id === id
                 ? {
-                    ...e,
-                    stage: ProcessingStage.NOT_FOUND,
-                    statusMessage: 'No subtitles found'
-                  }
+                  ...e,
+                  stage: ProcessingStage.NOT_FOUND,
+                  statusMessage: 'No subtitles found'
+                }
                 : e
             )
           )
@@ -1265,12 +1267,12 @@ const App: React.FC = () => {
           prev.map((e) =>
             e.id === id
               ? {
-                  ...e,
-                  stage: ProcessingStage.ERROR,
-                  statusMessage: isApiKeyError
-                    ? 'API Key required - Check Settings'
-                    : 'Search failed'
-                }
+                ...e,
+                stage: ProcessingStage.ERROR,
+                statusMessage: isApiKeyError
+                  ? 'API Key required - Check Settings'
+                  : 'Search failed'
+              }
               : e
           )
         )
@@ -1340,9 +1342,9 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-                ...e,
-                statusMessage: `Merging with ${targetSub?.filename}...`
-              }
+              ...e,
+              statusMessage: `Merging with ${targetSub?.filename}...`
+            }
             : e
         )
       )
@@ -1370,11 +1372,11 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-                ...e,
-                stage: ProcessingStage.COMPLETED,
-                statusMessage: 'Merge Complete',
-                progress: 100
-              }
+              ...e,
+              stage: ProcessingStage.COMPLETED,
+              statusMessage: 'Merge Complete',
+              progress: 100
+            }
             : e
         )
       )
@@ -1384,10 +1386,10 @@ const App: React.FC = () => {
         prev.map((e) =>
           e.id === id
             ? {
-                ...e,
-                stage: ProcessingStage.ERROR,
-                statusMessage: `Merge Failed: ${error.message}`
-              }
+              ...e,
+              stage: ProcessingStage.ERROR,
+              statusMessage: `Merge Failed: ${error.message}`
+            }
             : e
         )
       )
