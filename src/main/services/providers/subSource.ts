@@ -26,8 +26,13 @@ export class SubSourceService implements SubtitleProvider {
         return []
       }
 
-      // Use title from metadata if available, otherwise query
-      const searchQuery = metadata.title || query
+      // SubSource indexes shows under English titles.
+      // Priority: canonicalTitle (English verified) → query → metadata.title (may be romaji)
+      const canonicalTitle = (metadata as any).canonicalTitle
+      const primaryQuery = canonicalTitle || query || metadata.title
+      const altQuery =
+        metadata.title && metadata.title !== primaryQuery ? metadata.title : undefined
+
       const { imdbId, type, year } = metadata
 
       // Cast metadata to any to access potential season/episode if they exist at runtime
@@ -35,27 +40,26 @@ export class SubSourceService implements SubtitleProvider {
       const season = (metadata as any).season
       const episode = (metadata as any).episode
 
-      // Prepare search params for /movies/search
-      const searchParams: any = {
-        searchType: 'text', // Default to text
-        q: searchQuery
+      const buildSearchParams = (q: string) => {
+        const p: any = { searchType: 'text', q }
+        if (imdbId && imdbId.startsWith('tt')) {
+          p.searchType = 'imdb'
+          p.imdb = imdbId
+          delete p.q
+        }
+        if (year) p.year = year
+        if (type === 'movie' || type === 'tv') {
+          p.type = type === 'tv' ? 'series' : 'movie'
+        }
+        if (season) p.season = season
+        return p
       }
 
-      if (imdbId && imdbId.startsWith('tt')) {
-        searchParams.searchType = 'imdb'
-        searchParams.imdb = imdbId
-        delete searchParams.q
-      }
-
-      if (year) searchParams.year = year
-      if (type === 'movie' || type === 'tv') {
-        searchParams.type = type === 'tv' ? 'series' : 'movie'
-      }
-      if (season) searchParams.season = season
-
+      // First attempt with primary (English) title
+      let searchParams = buildSearchParams(primaryQuery)
       console.log('[SubSource] Searching movies:', this.baseUrl + '/movies/search', searchParams)
 
-      const response = await axios.get(`${this.baseUrl}/movies/search`, {
+      let response = await axios.get(`${this.baseUrl}/movies/search`, {
         params: searchParams,
         headers: {
           'X-API-Key': this.apiKey,
@@ -67,8 +71,27 @@ export class SubSourceService implements SubtitleProvider {
         }
       })
 
-      const movies = response.data.data || []
+      let movies = response.data.data || []
       console.log(`[SubSource] Found ${movies.length} movies/shows`)
+
+      // Retry with alternate title (e.g. romaji) if first search yielded nothing
+      if (movies.length === 0 && altQuery) {
+        console.log(`[SubSource] Retrying with alt title: "${altQuery}"`)
+        searchParams = buildSearchParams(altQuery)
+        response = await axios.get(`${this.baseUrl}/movies/search`, {
+          params: searchParams,
+          headers: {
+            'X-API-Key': this.apiKey,
+            Accept: 'application/json',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Tarjem/1.0 Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            Referer: 'https://subsource.net/'
+          }
+        })
+        movies = response.data.data || []
+        console.log(`[SubSource] Alt search found ${movies.length} movies/shows`)
+      }
 
       const subtitles: SubtitleResult[] = []
 
