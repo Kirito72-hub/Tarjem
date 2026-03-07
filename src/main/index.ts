@@ -111,7 +111,14 @@ app.whenReady().then(async () => {
   // Initialize electron-store dynamically
   // Initialize electron-store dynamically
   const { default: Store } = await import('electron-store')
-  store = new Store()
+  store = new Store({
+    defaults: {
+      subdl_api_key: 'siQu6CP_6p5z5MCsAOWefFHlkmnPyzm6',
+      subsource_api_key: 'sk_bb3aab42831df25d26d918f491cc5e10f047b153bd683ea816261b1d588e22b46',
+      omdb_api_key: '1ea6bdba',
+      parser_mode: 'anime'
+    }
+  }) as any
 
   try {
     subtitleService = new OpenSubtitlesService(store)
@@ -121,7 +128,7 @@ app.whenReady().then(async () => {
     ffmpegService = new FFmpegService() // Initialize FFmpeg service
 
     // Initialize OMDb Service
-    const omdbApiKey = await store.get('omdb_api_key')
+    const omdbApiKey = await store!.get('omdb_api_key')
     omdbService = new OMDbService(omdbApiKey as string)
     anilistService = new AniListService()
     metadataCache = new MetadataCache(store)
@@ -133,7 +140,7 @@ app.whenReady().then(async () => {
 
     // Register SubSource
 
-    const subSourceKey = await store.get('subsource_api_key')
+    const subSourceKey = await store!.get('subsource_api_key')
     subSourceService = new SubSourceService(subSourceKey as string)
     providerRegistry.register(subSourceService)
 
