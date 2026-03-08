@@ -1,6 +1,6 @@
 {
   "name": "tarjem",
-  "version": "3.3.0-beta",
+  "version": "3.4.0-beta",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
