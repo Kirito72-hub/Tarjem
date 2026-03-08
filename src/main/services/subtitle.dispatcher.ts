@@ -85,27 +85,44 @@ async function injectPathContext(
     `[PathContext] Base filename "${baseFilename}" has no meaningful title — attempting folder injection`
   )
 
-  // Step 2 — Extract and parse the parent folder name
-  const parentFolder = path.basename(path.dirname(filePath))
-  if (!parentFolder || parentFolder === '.' || parentFolder === '') return null
+  // Step 2 — Try parent folder, then grandparent folder if parent fails richness check.
+  // This handles episodes stored in per-episode subfolders inside the series folder:
+  //   .../Loner Life in Another World S01 1080p/.../S01E04-Headed to Town.mkv
+  const parentDir = path.dirname(filePath)
+  const grandparentDir = path.dirname(parentDir)
 
-  console.log(`[PathContext] Parsing parent folder: "${parentFolder}"`)
+  const foldersToTry = [
+    path.basename(parentDir),
+    grandparentDir !== parentDir ? path.basename(grandparentDir) : null
+  ].filter((f): f is string => !!f && f !== '.' && f !== '')
 
-  const folderParsed =
-    mode === 'anime' ? await parseWithAnitomy(parentFolder) : parseWithGuessit(parentFolder)
+  let folderParsed: Partial<ParsedMedia> | null = null
+  let chosenFolder = ''
 
-  if (!folderParsed.title) return null
+  for (const folder of foldersToTry) {
+    console.log(`[PathContext] Parsing folder: "${folder}"`)
+    const parsed = mode === 'anime' ? await parseWithAnitomy(folder) : parseWithGuessit(folder)
 
-  // Step 3 — Richness validation
-  if (!isFolderRich(folderParsed)) {
-    console.log(`[PathContext] Folder "${parentFolder}" failed richness check — discarding`)
+    if (!parsed.title) continue
+
+    if (isFolderRich(parsed)) {
+      folderParsed = parsed
+      chosenFolder = folder
+      break
+    }
+
+    console.log(`[PathContext] Folder "${folder}" failed richness check — trying next level`)
+  }
+
+  if (!folderParsed) {
+    console.log(`[PathContext] No rich folder found after checking ${foldersToTry.length} level(s)`)
     return null
   }
 
   // Step 4 — AniList verification
   // Strip season tokens (S01, S1, Season 2) that anitomy may leave inside the title
   // for folder names like "Loner Life in Another World S01 1080p...".
-  const rawFolderTitle = folderParsed.title
+  const rawFolderTitle = folderParsed.title!
   const cleanFolderTitle = rawFolderTitle.replace(/\s+(?:Season\s+\d+|S0*\d+)\s*$/i, '').trim()
 
   if (cleanFolderTitle !== rawFolderTitle) {
@@ -121,7 +138,7 @@ async function injectPathContext(
   }
 
   console.log(
-    `[PathContext] ✅ Folder title verified: "${canonicalTitle}" — merging with file episode info`
+    `[PathContext] ✅ Folder title verified via "${chosenFolder}": "${canonicalTitle}" — merging with file episode info`
   )
 
   // Step 5 — Merge: folder context + file episode
