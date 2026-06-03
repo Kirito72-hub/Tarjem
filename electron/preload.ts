@@ -1,9 +1,7 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import type { ProcessingProgressEvent } from './processingTypes';
 
-// Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
 const electronAPI = {
-    // Window Controls
     window: {
         minimize: () => ipcRenderer.invoke('window:minimize'),
         maximize: () => ipcRenderer.invoke('window:maximize'),
@@ -11,15 +9,59 @@ const electronAPI = {
         isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
     },
 
-    // Dialog
     dialog: {
         selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),
     },
+
+    files: {
+        scanFolder: (folderPath: string) => ipcRenderer.invoke('files:scan', folderPath),
+    },
+
+    pipeline: {
+        useMock: () => ipcRenderer.invoke('pipeline:useMock'),
+    },
+
+    processing: {
+        startFileMatch: (job: {
+            episodeId: string;
+            filePath: string;
+            filename: string;
+        }) => ipcRenderer.invoke('processing:startFileMatch', job),
+        startMerge: (job: {
+            episodeId: string;
+            videoPath: string;
+            filename: string;
+            removeOldSubs: boolean;
+            removeOtherAudio: boolean;
+            setDefaultSub: boolean;
+        }) => ipcRenderer.invoke('processing:startMerge', job),
+        onProgress: (callback: (payload: ProcessingProgressEvent) => void) => {
+            const listener = (_event: IpcRendererEvent, payload: ProcessingProgressEvent) => {
+                callback(payload);
+            };
+            ipcRenderer.on('processing:progress', listener);
+            return () => {
+                ipcRenderer.removeListener('processing:progress', listener);
+            };
+        },
+    },
+
+    subtitles: {
+        searchWeb: (query: string) =>
+            ipcRenderer.invoke('subtitles:searchWeb', query) as Promise<{
+                results: Array<{
+                    id: string;
+                    filename: string;
+                    source: string;
+                    language: string;
+                    downloads: number;
+                    rating: number;
+                }>;
+                error: string | null;
+            }>,
+    },
 };
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
     try {
         contextBridge.exposeInMainWorld('electronAPI', electronAPI);
@@ -27,6 +69,5 @@ if (process.contextIsolated) {
         console.error('Failed to expose electronAPI:', error);
     }
 } else {
-    // @ts-ignore (define in dts)
-    window.electronAPI = electronAPI;
+    (window as unknown as { electronAPI: typeof electronAPI }).electronAPI = electronAPI;
 }

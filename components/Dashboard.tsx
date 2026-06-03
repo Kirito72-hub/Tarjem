@@ -11,6 +11,8 @@ interface DashboardProps {
   // Web Search Props
   searchResults: SubtitleResult[];
   isSearchingWeb: boolean;
+  searchError?: string | null;
+  pipelineUsesMock?: boolean | null;
   onWebSearch: (query: string) => void;
   onDownloadSubtitle: (id: string) => void;
 
@@ -30,6 +32,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   episodes,
   searchResults,
   isSearchingWeb,
+  searchError,
+  pipelineUsesMock,
   onWebSearch,
   onDownloadSubtitle,
   onAddFiles, 
@@ -301,7 +305,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                             <h3 className="text-xl font-medium text-white">Find Subtitles Manually</h3>
                             <p className="text-gray-500 mt-1">Search by movie or series name across multiple providers</p>
+                            {pipelineUsesMock === true && (
+                                <p className="text-amber-500/80 text-xs mt-2">Dev mode: mock search results (TARJEM_MOCK_PIPELINE)</p>
+                            )}
+                            {pipelineUsesMock === false && (
+                                <p className="text-emerald-500/80 text-xs mt-2">Live OpenSubtitles search (requires API key)</p>
+                            )}
                         </div>
+                    )}
+                    {searchError && (
+                        <p className="text-red-400 text-sm text-center">{searchError}</p>
                     )}
                     
                     <div className="relative group">

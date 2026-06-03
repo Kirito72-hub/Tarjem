@@ -10,6 +10,8 @@ export enum ProcessingStage {
 export interface EpisodeFile {
   id: string;
   filename: string;
+  /** Absolute path on disk when loaded via folder scan or future file picker */
+  filePath?: string;
   size: string; // Display string like "1.4 GB"
   progress: number; // 0 to 100
   stage: ProcessingStage;

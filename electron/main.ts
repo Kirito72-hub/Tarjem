@@ -1,6 +1,11 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { scanFolderForMedia } from './services/fileScanner';
+import { runFileMatchJob, runMergeJob, isMockPipelineEnabled } from './services/processingService';
+import { searchSubtitlesByQuery } from './services/openSubtitlesClient';
+import { runMockWebSearch } from './services/mockPipeline';
+import type { FileMatchJob, MergeJob } from './processingTypes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,5 +131,52 @@ function registerIpcHandlers() {
             return null;
         }
         return result.filePaths[0];
+    });
+
+    ipcMain.handle('files:scan', async (_event, folderPath: string) => {
+        if (!folderPath || typeof folderPath !== 'string') {
+            return [];
+        }
+        try {
+            return await scanFolderForMedia(folderPath);
+        } catch (error) {
+            console.error('files:scan failed:', error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('pipeline:useMock', () => isMockPipelineEnabled());
+
+    ipcMain.handle('processing:startFileMatch', async (_event, job: FileMatchJob) => {
+        void runFileMatchJob(job, mainWindow);
+        return { started: true };
+    });
+
+    ipcMain.handle('processing:startMerge', async (_event, job: MergeJob) => {
+        void runMergeJob(job, mainWindow);
+        return { started: true };
+    });
+
+    ipcMain.handle('subtitles:searchWeb', async (_event, query: string) => {
+        const q = typeof query === 'string' ? query.trim() : '';
+        if (!q) return { results: [], error: 'Search query is empty' };
+
+        if (isMockPipelineEnabled()) {
+            try {
+                const results = await runMockWebSearch(q);
+                return { results, error: null };
+            } catch (err) {
+                const message = err instanceof Error ? err.message : 'Mock search failed';
+                return { results: [], error: message };
+            }
+        }
+
+        try {
+            const results = await searchSubtitlesByQuery(q);
+            return { results, error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Search failed';
+            return { results: [], error: message };
+        }
     });
 }

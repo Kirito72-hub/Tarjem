@@ -1,0 +1,37 @@
+appId: com.tarjem.app
+productName: Tarjem
+copyright: Copyright © 2026 Kirito72
+directories:
+  # Use `release` for installers; override with -c for a clean dir if a prior build left locked files.
+  output: release
+  buildResources: resources
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+extraResources:
+  - from: resources/ffmpeg
+    to: ffmpeg
+    filter:
+      - "**/*"
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+  # Skip rcedit/winCodeSign on Windows — the winCodeSign cache archive contains
+  # macOS dylib symlinks that fail without Developer Mode or an elevated shell.
+  signAndEditExecutable: false
+  signDlls: false
+  sign: null
+  signingHashAlgorithms: []
+  verifyUpdateCodeSignature: false
+nsis:
+  oneClick: false
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+forceCodeSigning: false

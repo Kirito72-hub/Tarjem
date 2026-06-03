@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { X, FileVideo, HardDrive, CheckSquare, Square, FolderOpen } from 'lucide-react';
 
 export interface PendingFile {
@@ -30,11 +30,6 @@ export const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
 
   const allChecked = files.every(f => f.checked);
   const selectedCount = files.filter(f => f.checked).length;
-  const totalSize = useMemo(() => {
-     // Rough calculation for display
-     return files.filter(f => f.checked).length * 1.2; // Assuming avg 1.2GB for sim
-  }, [files]);
-
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-[#0F111A] border border-white/10 w-full max-w-4xl h-[600px] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
@@ -79,7 +74,7 @@ export const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
 
         {/* File List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0F111A]">
-            {files.map((file, index) => (
+            {files.map((file) => (
                 <div 
                     key={file.id}
                     onClick={() => onToggle(file.id)}

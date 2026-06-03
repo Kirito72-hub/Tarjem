@@ -22,7 +22,9 @@ export const SettingsView: React.FC = () => {
     { code: 'tr', name: 'Turkish', native: 'Türkçe' },
   ];
 
-  const selectedLang = languages.find(l => l.code === language) || languages[0];
+  const selectedLang =
+    languages.find(l => l.code === language) ??
+    languages[0] ?? { code: 'en', name: 'English', native: 'English' };
 
   const filteredLanguages = languages.filter(l => 
     l.name.toLowerCase().includes(searchQuery.toLowerCase()) || 

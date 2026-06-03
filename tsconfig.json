@@ -45,6 +45,7 @@
         "src/**/*",
         "components/**/*",
         "lib/**/*",
+        "electron/electron.d.ts",
         "electron/**/*",
         "types.ts",
         "App.tsx",

@@ -51,9 +51,14 @@ Built with the **"Modern & Flexible"** stack for maximum performance and design 
     npm install
     ```
 
-3.  **Run the development server**
+3.  **Run the app in development** (Vite + Electron with custom title bar and window controls)
     ```bash
     npm run dev
+    ```
+
+    To run only the Vite renderer in the browser (no Electron APIs):
+    ```bash
+    npm run dev:renderer
     ```
 
 4.  **Build for Windows**
